@@ -1,0 +1,20 @@
+import Scene from './scene/Scene'
+import TopBar from './components/TopBar'
+import PhaseTabs from './components/PhaseTabs'
+import Telop from './components/Telop'
+
+function App() {
+  return (
+    <div className="relative w-screen h-screen overflow-hidden bg-[#0a0e1a]">
+      {/* 3Dシーン */}
+      <Scene />
+
+      {/* UI レイヤー */}
+      <TopBar />
+      <PhaseTabs />
+      <Telop />
+    </div>
+  )
+}
+
+export default App

@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei'
 import { EffectComposer, Bloom, SSAO } from '@react-three/postprocessing'
+import { Color } from 'three'
 import Court from './Court'
 import Net from './Net'
 import Players from './Player'
@@ -70,7 +71,7 @@ export default function Scene() {
             radius={0.5}
             intensity={20}
             luminanceInfluence={0.6}
-            color="#000000"
+            color={new Color('#000000')}
             worldDistanceThreshold={0}
             worldDistanceFalloff={0}
             worldProximityThreshold={0}

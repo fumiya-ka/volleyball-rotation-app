@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { PLAYERS } from '../data/rotations'
-import { getPlayerPositions } from '../data/players'
+import type { PlayerId } from '../data/rotations'
 import { useSceneStore } from '../store/sceneStore'
 
 function NumberLabel({ label, color }: { label: string; color: string }) {
@@ -17,8 +18,7 @@ function NumberLabel({ label, color }: { label: string; color: string }) {
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(label, 128, 70)
-    const tex = new THREE.CanvasTexture(canvas)
-    return tex
+    return new THREE.CanvasTexture(canvas)
   }, [label, color])
 
   return (
@@ -28,18 +28,25 @@ function NumberLabel({ label, color }: { label: string; color: string }) {
   )
 }
 
-function Player({
-  position,
+function AnimatedPlayer({
+  id,
   color,
   label,
 }: {
-  position: [number, number, number]
+  id: PlayerId
   color: string
   label: string
 }) {
+  const groupRef = useRef<THREE.Group>(null)
+  const pos = useSceneStore((s) => s.playerPos[id])
+
+  useFrame(() => {
+    if (!groupRef.current) return
+    groupRef.current.position.set(pos.x, pos.y, pos.z)
+  })
+
   return (
-    <group position={position}>
-      {/* 体 */}
+    <group ref={groupRef}>
       <mesh position={[0, 0.9, 0]} castShadow>
         <cylinderGeometry args={[0.32, 0.28, 1.2, 32]} />
         <meshStandardMaterial
@@ -51,47 +58,32 @@ function Player({
         />
       </mesh>
 
-      {/* 頭 */}
       <mesh position={[0, 1.7, 0]} castShadow>
         <sphereGeometry args={[0.28, 32, 32]} />
         <meshStandardMaterial color="#fbe1c7" roughness={0.65} metalness={0} />
       </mesh>
 
-      {/* 髪 */}
       <mesh position={[0, 1.78, 0]} castShadow>
         <sphereGeometry args={[0.29, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
         <meshStandardMaterial color="#2a1a0a" roughness={0.9} />
       </mesh>
 
-      {/* 足元のリング */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
         <ringGeometry args={[0.4, 0.5, 32]} />
         <meshBasicMaterial color={color} transparent opacity={0.7} side={2} />
       </mesh>
 
-      {/* ラベル */}
       <NumberLabel label={label} color={color} />
     </group>
   )
 }
 
 export default function Players() {
-  const rotation = useSceneStore((s) => s.rotation)
-  const positions = useMemo(() => getPlayerPositions(rotation), [rotation])
-
   return (
     <>
-      {PLAYERS.map((p) => {
-        const pos = positions[p.id]
-        return (
-          <Player
-            key={p.id}
-            position={[pos.x, 0, pos.z]}
-            color={p.color}
-            label={p.label}
-          />
-        )
-      })}
+      {PLAYERS.map((p) => (
+        <AnimatedPlayer key={p.id} id={p.id} color={p.color} label={p.label} />
+      ))}
     </>
   )
 }

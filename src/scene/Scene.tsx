@@ -6,6 +6,7 @@ import Court from './Court'
 import Net from './Net'
 import Players from './Player'
 import Ball from './Ball'
+import SequenceAnimator from './SequenceAnimator'
 
 export default function Scene() {
   return (
@@ -41,6 +42,7 @@ export default function Scene() {
         {/* コート要素 */}
         <Court />
         <Net />
+        <SequenceAnimator />
         <Players />
         <Ball />
 

@@ -1,0 +1,186 @@
+{
+  "setterPos": { "x": 1.5, "z": 1.0 },
+  "frontRowPositions": [2, 3, 4],
+  "sample": {
+    "idleBobY": 0.08
+  },
+  "reception": {
+    "frontRowZ": 3.0,
+    "backSetterBehindZ": 3.8,
+    "backSetterFrontPair": { "1": 2, "6": 3, "5": 4 },
+    "fallbackReceiver": { "x": -3, "z": 7 },
+    "fallbackSpiker": { "x": -3, "z": 3 },
+    "tossTargetZ": 0.8,
+    "s1Overrides": {
+      "OP": { "x": -3.0, "z": 3.0 },
+      "MB2": { "x": -1.5, "z": 5.0 },
+      "OH1": { "x": 0.0, "z": 3.0 },
+      "OH2": { "x": 1.5, "z": 5.0 },
+      "MB1": { "x": 3.0, "z": 3.0 },
+      "S": { "x": 3.0, "z": 3.8 }
+    },
+    "timing": {
+      "serveHit": 0.6,
+      "ballToReceiver": 1.7,
+      "ballToSetter": 2.5,
+      "ballSetterHold": 3.0,
+      "ballToToss": 3.7,
+      "spikeHit": 4.0,
+      "ballLands": 4.7,
+      "endTime": 6.0
+    },
+    "ball": {
+      "serveOrigin": { "x": -2, "y": 2.4, "z": -8 },
+      "receiveY": 0.5,
+      "receiveArc": 2.5,
+      "setterY": 2.8,
+      "setterArc": 1.8,
+      "tossY": 2.9,
+      "tossArc": 1.2,
+      "opponentLand": { "x": -2, "y": 0.5, "z": -6 },
+      "opponentLandArc": 0.4
+    },
+    "players": {
+      "setterMoveFront": 1.5,
+      "setterMoveBack": 1.4,
+      "setterHold": 2.5,
+      "setterTossJump": 2.8,
+      "setterJump": 0.2,
+      "spikerHold": 3.0,
+      "spikerApproach": 3.5,
+      "spikerApproachZOffset": 0.3,
+      "spikerJump": 2.2,
+      "spikerLandDelay": 0.4
+    }
+  },
+  "specialistPos": {
+    "sFront": {
+      "frontOH": { "x": -3.2, "z": 0.8 },
+      "frontMB": { "x": 0, "z": 0.7 },
+      "S": { "x": 3.0, "z": 0.8 },
+      "backOH": { "x": -3.0, "z": 5.8 },
+      "backMB": { "x": 0, "z": 6.5 },
+      "OP": { "x": 3.0, "z": 5.8 }
+    },
+    "sBack": {
+      "frontOH": { "x": -3.2, "z": 0.8 },
+      "frontMB": { "x": 0, "z": 0.7 },
+      "OP": { "x": 3.0, "z": 0.8 },
+      "backOH": { "x": -3.0, "z": 5.8 },
+      "backMB": { "x": 0, "z": 6.5 },
+      "S": { "x": 3.0, "z": 5.8 }
+    }
+  },
+  "serve": {
+    "serverZ": 10.8,
+    "timing": {
+      "serveHit": 1.8,
+      "ballOver": 2.6,
+      "endTime": 4.5
+    },
+    "ball": {
+      "holdY": 1.3,
+      "tossUpY": 3.2,
+      "hitY": 2.6,
+      "overNetY": 2.8,
+      "overNetZ": -3,
+      "overNetXFactor": 0.7,
+      "landTime": 3.4,
+      "landY": 1.0,
+      "landZ": -6,
+      "landXFactor": 0.5,
+      "landArc": 0.5
+    },
+    "ballTimes": {
+      "hold": 0.9,
+      "tossUp": 1.4
+    },
+    "players": {
+      "serverMove": 0.7,
+      "serverToss": 1.4,
+      "serverLand": 2.3,
+      "serverJump": 0.4
+    }
+  },
+  "defense": {
+    "duration": 4.2,
+    "ballDigPoint": { "x": -2.5, "z": 4.5 },
+    "digByPosition": {
+      "1": { "x": 3.5, "z": 5.5 },
+      "5": { "x": -2.8, "z": 5.0 },
+      "6": { "x": 0.5, "z": 4.5 }
+    },
+    "blockPos1": { "x": 2.5, "z": 0.4 },
+    "blockPos2": { "x": 0.8, "z": 0.4 },
+    "offBlockPos": { "x": -3.0, "z": 2.5 },
+    "timing": {
+      "spikeWindup": 0.8,
+      "spikeHit": 1.4,
+      "ballDig": 2.0,
+      "digHold": 2.8,
+      "ballToSetter": 3.6,
+      "end": 4.2
+    },
+    "ball": {
+      "spikeOrigin": { "x": -2, "y": 2.8, "z": -1.5 },
+      "spikeApproach": { "x": -2.5, "y": 3.2, "z": -0.5 },
+      "digY": 0.6,
+      "digArc": 0.5,
+      "setterY": 2.6,
+      "setterArc": 2.0
+    },
+    "players": {
+      "blocker1Move": 0.8,
+      "blocker2Move": 1.0,
+      "offBlockMove": 1.0,
+      "digMove": 1.0,
+      "digContact": 2.0,
+      "blockJump": 1.8,
+      "blockLand": 1.9,
+      "digJump": 0.15,
+      "backSetterMove": 3.6
+    }
+  },
+  "attack": {
+    "fallbackSpiker": { "x": -3, "z": 1.8 },
+    "tossTargetZMin": 0.6,
+    "tossTargetZOffset": 0.5,
+    "fakeApproachZMin": 0.9,
+    "fakeApproachZOffset": 0.3,
+    "timing": {
+      "ballRise": 0.5,
+      "ballHold": 0.8,
+      "ballToToss": 1.8,
+      "spikeHit": 2.1,
+      "ballLands": 2.9,
+      "endTime": 4.2
+    },
+    "ball": {
+      "riseZOffset": 1.5,
+      "riseY": 2.4,
+      "riseArc": 1.5,
+      "setterY": 2.8,
+      "tossY": 3.0,
+      "tossArc": 1.5,
+      "landY": 0.5,
+      "landZ": -6,
+      "landXFactor": 0.4,
+      "landArc": 0.3
+    },
+    "players": {
+      "setterJump": 0.3,
+      "spikerReady": 0.8,
+      "spikerApproach": 1.5,
+      "spikerJump": 2.2,
+      "spikerLandDelay": 0.4,
+      "spikerApproachZOffset": 0.3,
+      "mbQuickStart": 1.1,
+      "mbQuickLand": 1.5,
+      "mbQuickPos": { "x": 0, "z": 0.7 },
+      "mbQuickJump": 2.0,
+      "fakeReady": 0.5,
+      "fakeApproach": 1.5,
+      "fakeJump": 1.5
+    }
+  }
+}

@@ -2,6 +2,8 @@ import Scene from './scene/Scene'
 import TopBar from './components/TopBar'
 import PhaseTabs from './components/PhaseTabs'
 import Telop from './components/Telop'
+import PlaybackControls from './components/PlaybackControls'
+import DevPanel from './components/DevPanel'
 
 function App() {
   return (
@@ -13,6 +15,10 @@ function App() {
       <TopBar />
       <PhaseTabs />
       <Telop />
+      <PlaybackControls />
+
+      {/* 開発ツール（dev環境のみ） */}
+      {import.meta.env.DEV && <DevPanel />}
     </div>
   )
 }

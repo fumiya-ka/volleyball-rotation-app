@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Environment, ContactShadows } from '@react-three/drei'
+import { OrbitControls, Environment } from '@react-three/drei'
 import { EffectComposer, Bloom, SSAO } from '@react-three/postprocessing'
 import { Color } from 'three'
 import Court from './Court'
@@ -7,8 +7,13 @@ import Net from './Net'
 import Players from './Player'
 import Ball from './Ball'
 import SequenceAnimator from './SequenceAnimator'
+import DragController from './DragController'
+import { useSceneStore } from '../store/sceneStore'
 
 export default function Scene() {
+  const setSelectedPlayer = useSceneStore((s) => s.setSelectedPlayer)
+  const draggedId = useSceneStore((s) => s.draggedId)
+
   return (
     <div className="absolute inset-0">
       <Canvas
@@ -16,6 +21,7 @@ export default function Scene() {
         dpr={[1, 2]}
         camera={{ position: [14, 12, 16], fov: 45 }}
         gl={{ antialias: true }}
+        onPointerMissed={() => setSelectedPlayer(null)}
       >
         {/* 背景 */}
         <color attach="background" args={['#0a0e1a']} />
@@ -46,16 +52,7 @@ export default function Scene() {
         <Players />
         <Ball />
 
-        {/* 床のソフトな接触シャドウ */}
-        <ContactShadows
-          position={[0, 0.01, 4]}
-          opacity={0.4}
-          scale={20}
-          blur={2}
-          far={4}
-        />
-
-        {/* カメラ操作 */}
+        {/* カメラ操作（DEVドラッグ中は無効化） */}
         <OrbitControls
           target={[0, 1.5, 4]}
           enableDamping
@@ -63,7 +60,11 @@ export default function Scene() {
           minDistance={8}
           maxDistance={40}
           maxPolarAngle={Math.PI / 2.1}
+          enabled={draggedId === null}
         />
+
+        {/* DEVドラッグコントローラー */}
+        {import.meta.env.DEV && <DragController />}
 
         {/* ポストエフェクト */}
         <EffectComposer multisampling={0}>

@@ -24,6 +24,9 @@ export default function SequenceAnimator() {
   }, [phase, rotation, constants])
 
   useFrame((_, delta) => {
+    // DEVドラッグ中はアニメーターによる位置上書きをスキップ
+    if (useSceneStore.getState().draggedId !== null) return
+
     const seq = seqRef.current
     if (!seq) return
 
@@ -34,7 +37,15 @@ export default function SequenceAnimator() {
     }
 
     const state = sampleSequence(seq, t)
-    useSceneStore.getState().applySampled(state.ball, state.players)
+    const { positionOverrides } = useSceneStore.getState()
+
+    // オーバーライドは再生中・ポーズ中ともに適用
+    const ball = positionOverrides['ball'] ?? state.ball
+    const players = { ...state.players }
+    for (const [key, pos] of Object.entries(positionOverrides)) {
+      if (key !== 'ball' && pos) players[key as keyof typeof players] = pos
+    }
+    useSceneStore.getState().applySampled(ball, players)
   })
 
   return null

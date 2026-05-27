@@ -3,18 +3,18 @@ import { useSceneStore } from '../store/sceneStore'
 import type { AttackTempo } from '../store/sceneStore'
 
 const PHASES = [
-  { key: 'reception', label: '① 相手サーブ' },
-  { key: 'serve', label: '② 自陣サーブ' },
-  { key: 'defense', label: '③ 被スパイク' },
-  { key: 'attack', label: '④ 攻撃' },
+  { key: 'reception', label: '① 相手サーブ', shortLabel: '① 受' },
+  { key: 'serve', label: '② 自陣サーブ', shortLabel: '② 出' },
+  { key: 'defense', label: '③ 被スパイク', shortLabel: '③ 守' },
+  { key: 'attack', label: '④ 攻撃', shortLabel: '④ 攻' },
 ] as const
 
 const ROTATIONS = ['S1', 'S6', 'S5', 'S4', 'S3', 'S2'] as const
 
-const TEMPOS: { key: AttackTempo; label: string }[] = [
-  { key: '1st', label: '1st（クイック）' },
-  { key: '2nd', label: '2nd（セミ）' },
-  { key: '3rd', label: '3rd（高め）' },
+const TEMPOS: { key: AttackTempo; label: string; shortLabel: string }[] = [
+  { key: '1st', label: '1st（クイック）', shortLabel: '1st' },
+  { key: '2nd', label: '2nd（セミ）', shortLabel: '2nd' },
+  { key: '3rd', label: '3rd（高め）', shortLabel: '3rd' },
 ]
 
 export default function PhaseTabs() {
@@ -23,51 +23,54 @@ export default function PhaseTabs() {
   return (
     <>
       {/* フェーズタブ */}
-      <div className="fixed top-16 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-[#0a0e1a]/85 backdrop-blur-md p-1.5">
-        <span className="font-mono text-[8px] tracking-widest text-[#6b7280] uppercase px-2">
+      <div className="fixed top-12 sm:top-16 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 sm:gap-1.5 bg-[#0a0e1a]/85 backdrop-blur-md p-1 sm:p-1.5">
+        <span className="hidden sm:block font-mono text-[8px] tracking-widest text-[#6b7280] uppercase px-2">
           サーブ
         </span>
         {PHASES.slice(0, 2).map((p) => (
           <button
             key={p.key}
             onClick={() => setPhase(p.key)}
-            className={`px-3 py-2 font-mono text-[10px] tracking-wider transition-all ${
+            className={`px-2 py-1.5 sm:px-3 sm:py-2 font-mono text-[9px] sm:text-[10px] tracking-wider transition-all ${
               phase === p.key
                 ? 'bg-[#ff5436] text-[#0a0e1a] font-bold'
                 : 'text-[#6b7280] hover:text-[#c9cdd4]'
             }`}
           >
-            {p.label}
+            {/* モバイル: 短縮ラベル / デスクトップ: フルラベル */}
+            <span className="sm:hidden">{p.shortLabel}</span>
+            <span className="hidden sm:inline">{p.label}</span>
           </button>
         ))}
 
-        <div className="w-px h-6 bg-[#2d3340] mx-1" />
+        <div className="w-px h-5 sm:h-6 bg-[#2d3340] mx-0.5 sm:mx-1" />
 
-        <span className="font-mono text-[8px] tracking-widest text-[#6b7280] uppercase px-2">
+        <span className="hidden sm:block font-mono text-[8px] tracking-widest text-[#6b7280] uppercase px-2">
           ラリー
         </span>
         {PHASES.slice(2).map((p) => (
           <button
             key={p.key}
             onClick={() => setPhase(p.key)}
-            className={`px-3 py-2 font-mono text-[10px] tracking-wider transition-all ${
+            className={`px-2 py-1.5 sm:px-3 sm:py-2 font-mono text-[9px] sm:text-[10px] tracking-wider transition-all ${
               phase === p.key
                 ? 'bg-[#ff5436] text-[#0a0e1a] font-bold'
                 : 'text-[#6b7280] hover:text-[#c9cdd4]'
             }`}
           >
-            {p.label}
+            <span className="sm:hidden">{p.shortLabel}</span>
+            <span className="hidden sm:inline">{p.label}</span>
           </button>
         ))}
       </div>
 
       {/* ローテーション選択（全フェーズ共通） */}
-      <div className="fixed top-28 left-1/2 -translate-x-1/2 z-10 flex gap-1 bg-[#0a0e1a]/85 backdrop-blur-md p-1">
+      <div className="fixed top-[5.5rem] sm:top-28 left-1/2 -translate-x-1/2 z-10 flex gap-0.5 sm:gap-1 bg-[#0a0e1a]/85 backdrop-blur-md p-1">
         {ROTATIONS.map((r) => (
           <button
             key={r}
             onClick={() => setRotation(r)}
-            className={`px-3 py-1.5 font-mono text-[10px] transition-all ${
+            className={`px-2.5 py-1 sm:px-3 sm:py-1.5 font-mono text-[9px] sm:text-[10px] transition-all ${
               rotation === r
                 ? 'bg-[#2d3340] text-[#ff5436] font-bold'
                 : 'text-[#6b7280] hover:text-[#c9cdd4]'
@@ -80,7 +83,7 @@ export default function PhaseTabs() {
 
       {/* 攻撃テンポ選択（attackフェーズのみ） */}
       <motion.div
-        className="fixed top-[9.5rem] left-1/2 -translate-x-1/2 z-10 flex gap-1 bg-[#0a0e1a]/85 backdrop-blur-md p-1"
+        className="fixed top-[8rem] sm:top-[9.5rem] left-1/2 -translate-x-1/2 z-10 flex gap-0.5 sm:gap-1 bg-[#0a0e1a]/85 backdrop-blur-md p-1"
         animate={{
           opacity: phase === 'attack' ? 1 : 0,
           pointerEvents: phase === 'attack' ? 'auto' : 'none',
@@ -91,13 +94,15 @@ export default function PhaseTabs() {
           <button
             key={t.key}
             onClick={() => setAttackTempo(t.key)}
-            className={`px-3 py-1.5 font-mono text-[10px] transition-all ${
+            className={`px-2 py-1 sm:px-3 sm:py-1.5 font-mono text-[9px] sm:text-[10px] transition-all ${
               attackTempo === t.key
                 ? 'bg-[#2d3340] text-[#fbbf24] font-bold'
                 : 'text-[#6b7280] hover:text-[#c9cdd4]'
             }`}
           >
-            {t.label}
+            {/* モバイル: 短縮 / デスクトップ: フル */}
+            <span className="sm:hidden">{t.shortLabel}</span>
+            <span className="hidden sm:inline">{t.label}</span>
           </button>
         ))}
       </motion.div>

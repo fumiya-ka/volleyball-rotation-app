@@ -23,6 +23,15 @@ interface SceneState {
   playbackSpeed: number
   ballPos: Vec3
   playerPos: Record<PlayerId, Vec3>
+  selectedPlayer: PlayerId | null
+  /** DEVドラッグ中のエンティティ */
+  draggedId: PlayerId | 'ball' | null
+  /**
+   * DEV: ドロップ後に保持する位置オーバーライド
+   * SequenceAnimator のアニメーション後に上書き適用される
+   * フェーズ/ローテーション変更時にクリアされる
+   */
+  positionOverrides: Partial<Record<PlayerId | 'ball', Vec3>>
 
   setPhase: (phase: Phase) => void
   setRotation: (rot: Rotation) => void
@@ -35,6 +44,14 @@ interface SceneState {
   setBallPos: (p: Vec3) => void
   setPlayerPos: (id: PlayerId, p: Vec3) => void
   applySampled: (ball: Vec3, players: Record<PlayerId, Vec3>) => void
+  setSelectedPlayer: (id: PlayerId | null) => void
+  setDraggedId: (id: PlayerId | 'ball' | null) => void
+  /** ドロップ時に位置を保存 */
+  setPositionOverride: (id: PlayerId | 'ball', pos: Vec3) => void
+  /** 指定エンティティのオーバーライドを削除 */
+  clearPositionOverride: (id: PlayerId | 'ball') => void
+  /** 全オーバーライドをクリア */
+  clearAllPositionOverrides: () => void
 }
 
 const defaultPlayerPos = {} as Record<PlayerId, Vec3>
@@ -54,9 +71,13 @@ export const useSceneStore = create<SceneState>((set) => ({
   playbackSpeed: 1,
   ballPos: { x: -2, y: 2.4, z: -8 },
   playerPos: { ...defaultPlayerPos },
+  selectedPlayer: null,
+  draggedId: null,
+  positionOverrides: {},
 
-  setPhase: (phase) => set({ phase, time: 0 }),
-  setRotation: (rotation) => set({ rotation, time: 0 }),
+  // フェーズ/ローテーション変更時にオーバーライドをクリア
+  setPhase: (phase) => set({ phase, time: 0, selectedPlayer: null, positionOverrides: {} }),
+  setRotation: (rotation) => set({ rotation, time: 0, selectedPlayer: null, positionOverrides: {} }),
   setAttackSide: (attackSide) => set({ attackSide }),
   setAttackTempo: (attackTempo) => set({ attackTempo }),
   setTime: (time) => set({ time }),
@@ -67,6 +88,17 @@ export const useSceneStore = create<SceneState>((set) => ({
   setPlayerPos: (id, p) =>
     set((s) => ({ playerPos: { ...s.playerPos, [id]: p } })),
   applySampled: (ballPos, playerPos) => set({ ballPos, playerPos }),
+  setSelectedPlayer: (selectedPlayer) => set({ selectedPlayer }),
+  setDraggedId: (draggedId) => set({ draggedId }),
+  setPositionOverride: (id, pos) =>
+    set((s) => ({ positionOverrides: { ...s.positionOverrides, [id]: pos } })),
+  clearPositionOverride: (id) =>
+    set((s) => {
+      const next = { ...s.positionOverrides }
+      delete next[id]
+      return { positionOverrides: next }
+    }),
+  clearAllPositionOverrides: () => set({ positionOverrides: {} }),
 }))
 
 // 全フェーズでローテーション依存

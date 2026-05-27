@@ -8,6 +8,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useConstantsStore, getByPath } from '../store/constantsStore'
+import { useSceneStore } from '../store/sceneStore'
+import { PLAYERS } from '../data/rotations'
+import DescriptionsEditor from './DescriptionsEditor'
 import type { SequenceConstants } from '../data/sequenceConstants'
 
 // ────────────────────────────────────────────────────────────
@@ -515,13 +518,33 @@ const DEFAULT_WIDTH = 440
 
 export default function DevPanel() {
   const [visible, setVisible] = useState(false)
+  const [mainTab, setMainTab] = useState<'constants' | 'descriptions'>('constants')
   const [openKey, setOpenKey] = useState<string | null>('general')
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
   const { constants, isDirty, reset } = useConstantsStore()
+  const draggedId = useSceneStore((s) => s.draggedId)
+  const playerPos = useSceneStore((s) => s.playerPos)
+  const ballPos = useSceneStore((s) => s.ballPos)
+  const positionOverrides = useSceneStore((s) => s.positionOverrides)
+  const clearPositionOverride = useSceneStore((s) => s.clearPositionOverride)
+  const clearAllPositionOverrides = useSceneStore((s) => s.clearAllPositionOverrides)
+  const overrideEntries = Object.entries(positionOverrides) as [string, { x: number; y: number; z: number }][]
   const panelRef = useRef<HTMLDivElement>(null)
   const isResizing = useRef(false)
   const resizeStartX = useRef(0)
   const resizeStartWidth = useRef(DEFAULT_WIDTH)
+
+  // ドラッグ中の座標
+  const dragPos = draggedId
+    ? draggedId === 'ball'
+      ? ballPos
+      : playerPos[draggedId]
+    : null
+  const dragLabel = draggedId
+    ? draggedId === 'ball'
+      ? 'ボール'
+      : `${draggedId} (${PLAYERS.find((p) => p.id === draggedId)?.label ?? draggedId})`
+    : null
 
   // ` キーでトグル
   useEffect(() => {
@@ -581,6 +604,52 @@ export default function DevPanel() {
 
   return (
     <>
+      {/* ドラッグ中座標オーバーレイ */}
+      {dragPos && (
+        <div className="fixed bottom-[7rem] left-1/2 -translate-x-1/2 z-50 font-mono text-[10px] bg-[#0a0e1a]/95 border border-[#ff5436] px-3 py-2 backdrop-blur-md pointer-events-none">
+          <span className="text-[#ff5436] font-bold mr-2">✥ DRAG</span>
+          <span className="text-[#c9cdd4]">{dragLabel}</span>
+          <span className="text-[#6b7280] ml-3">
+            X:<span className="text-[#fbbf24] ml-1">{dragPos.x.toFixed(2)}</span>
+            {'  '}Y:<span className="text-[#fbbf24] ml-1">{dragPos.y.toFixed(2)}</span>
+            {'  '}Z:<span className="text-[#fbbf24] ml-1">{dragPos.z.toFixed(2)}</span>
+          </span>
+        </div>
+      )}
+
+      {/* 保存済み位置オーバーライド一覧 */}
+      {overrideEntries.length > 0 && !dragPos && (
+        <div className="fixed bottom-[7rem] left-1/2 -translate-x-1/2 z-50 font-mono text-[9px] bg-[#0a0e1a]/95 border border-[#2d3340] px-3 py-2 backdrop-blur-md">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[#6b7280] tracking-wider">📍 固定位置</span>
+            <button
+              onClick={clearAllPositionOverrides}
+              className="text-[#4b5563] hover:text-[#ff5436] transition-colors ml-4 text-[9px]"
+            >
+              全解除
+            </button>
+          </div>
+          <div className="space-y-0.5">
+            {overrideEntries.map(([id, pos]) => (
+              <div key={id} className="flex items-center gap-2">
+                <span className="text-[#c9cdd4] w-8">{id}</span>
+                <span className="text-[#6b7280]">
+                  X:<span className="text-[#fbbf24] ml-0.5">{pos.x.toFixed(2)}</span>
+                  {' '}Y:<span className="text-[#fbbf24] ml-0.5">{pos.y.toFixed(2)}</span>
+                  {' '}Z:<span className="text-[#fbbf24] ml-0.5">{pos.z.toFixed(2)}</span>
+                </span>
+                <button
+                  onClick={() => clearPositionOverride(id as Parameters<typeof clearPositionOverride>[0])}
+                  className="text-[#4b5563] hover:text-[#ff5436] transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* トグルボタン */}
       <button
         onClick={() => setVisible((v) => !v)}
@@ -617,14 +686,13 @@ export default function DevPanel() {
           </div>
 
           {/* ヘッダー */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2840] flex-shrink-0 pl-5">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-[#1e2840] flex-shrink-0 pl-5">
             <div className="min-w-0">
               <h2 className="font-mono text-[11px] font-bold text-[#ff5436] tracking-widest">
-                CONSTANTS EDITOR
+                DEV PANEL
               </h2>
               <p className="font-mono text-[9px] text-[#4b5563] mt-0.5">
-                ` キーで開閉　左端ドラッグで幅調整　<span className="text-[#6b7280]">? ホバーで説明</span>
-                {isDirty && <span className="text-[#fbbf24] ml-1">— 変更あり</span>}
+                ` キーで開閉　左端ドラッグで幅調整
               </p>
             </div>
             <button
@@ -635,46 +703,76 @@ export default function DevPanel() {
             </button>
           </div>
 
-          {/* フィールドリスト（スクロール可） */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
-            {GROUPS.map((g) => (
-              <GroupSection
-                key={g.key}
-                group={g}
-                constants={constants}
-                openKey={openKey}
-                onToggle={handleToggleGroup}
-              />
+          {/* メインタブ */}
+          <div className="flex border-b border-[#1e2840] flex-shrink-0">
+            {([
+              { key: 'constants' as const, label: 'CONSTANTS' },
+              { key: 'descriptions' as const, label: 'DESCRIPTIONS' },
+            ]).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setMainTab(key)}
+                className={`flex-1 font-mono text-[10px] py-2 transition-colors ${
+                  mainTab === key
+                    ? 'bg-[#1a2035] text-[#ff5436] border-b-2 border-[#ff5436]'
+                    : 'text-[#4b5563] hover:text-[#8892a4]'
+                }`}
+              >
+                {label}
+                {key === 'constants' && isDirty && <span className="text-[#fbbf24] ml-1">●</span>}
+              </button>
             ))}
           </div>
 
-          {/* フッター */}
-          <div className="flex-shrink-0 border-t border-[#1e2840] p-3 space-y-2">
-            <p className="font-mono text-[9px] text-[#4b5563] leading-relaxed">
-              調整後は <span className="text-[#ff5436]">Download JSON</span> →{' '}
-              <code className="text-[#8892a4]">src/data/sequenceConstants.json</code> に上書き保存
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={handleCopyJson}
-                className="flex-1 font-mono text-[10px] py-1.5 bg-[#1a2035] border border-[#2d3340] text-[#c9cdd4] hover:border-[#ff5436] hover:text-white transition-colors"
-              >
-                Copy JSON
-              </button>
-              <button
-                onClick={handleDownloadJson}
-                className="flex-1 font-mono text-[10px] py-1.5 bg-[#ff5436] text-[#0a0e1a] font-bold hover:bg-[#ff6b52] transition-colors"
-              >
-                Download JSON
-              </button>
+          {/* CONSTANTS タブ */}
+          {mainTab === 'constants' && (
+            <>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                {GROUPS.map((g) => (
+                  <GroupSection
+                    key={g.key}
+                    group={g}
+                    constants={constants}
+                    openKey={openKey}
+                    onToggle={handleToggleGroup}
+                  />
+                ))}
+              </div>
+              <div className="flex-shrink-0 border-t border-[#1e2840] p-3 space-y-2">
+                <p className="font-mono text-[9px] text-[#4b5563] leading-relaxed">
+                  調整後は <span className="text-[#ff5436]">Download JSON</span> →{' '}
+                  <code className="text-[#8892a4]">src/data/sequenceConstants.json</code> に上書き保存
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCopyJson}
+                    className="flex-1 font-mono text-[10px] py-1.5 bg-[#1a2035] border border-[#2d3340] text-[#c9cdd4] hover:border-[#ff5436] hover:text-white transition-colors"
+                  >
+                    Copy JSON
+                  </button>
+                  <button
+                    onClick={handleDownloadJson}
+                    className="flex-1 font-mono text-[10px] py-1.5 bg-[#ff5436] text-[#0a0e1a] font-bold hover:bg-[#ff6b52] transition-colors"
+                  >
+                    Download JSON
+                  </button>
+                </div>
+                <button
+                  onClick={handleReset}
+                  className="w-full font-mono text-[10px] py-1 border border-[#2d3340] text-[#4b5563] hover:border-[#6b7280] hover:text-[#8892a4] transition-colors"
+                >
+                  Reset to default
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* DESCRIPTIONS タブ */}
+          {mainTab === 'descriptions' && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <DescriptionsEditor />
             </div>
-            <button
-              onClick={handleReset}
-              className="w-full font-mono text-[10px] py-1 border border-[#2d3340] text-[#4b5563] hover:border-[#6b7280] hover:text-[#8892a4] transition-colors"
-            >
-              Reset to default
-            </button>
-          </div>
+          )}
         </div>
       )}
     </>

@@ -50,9 +50,9 @@ export default function PlaybackControls() {
   }
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3 w-[min(520px,92vw)]">
-      <div className="flex items-center gap-2.5 w-full px-1">
-        <span className="font-mono text-[10px] text-[#c9cdd4] tracking-wider min-w-[44px] text-center tabular-nums">
+    <div className="fixed bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 sm:gap-3 w-[min(520px,94vw)]">
+      <div className="flex items-center gap-2 sm:gap-2.5 w-full px-1">
+        <span className="font-mono text-[9px] sm:text-[10px] text-[#c9cdd4] tracking-wider min-w-[38px] sm:min-w-[44px] text-center tabular-nums">
           {displayTime.toFixed(2)}s
         </span>
         <div
@@ -73,23 +73,23 @@ export default function PlaybackControls() {
             style={{ left: `${progress}%` }}
           />
         </div>
-        <span className="font-mono text-[10px] text-[#c9cdd4] tracking-wider min-w-[44px] text-center tabular-nums">
+        <span className="font-mono text-[9px] sm:text-[10px] text-[#c9cdd4] tracking-wider min-w-[38px] sm:min-w-[44px] text-center tabular-nums">
           {duration.toFixed(2)}s
         </span>
       </div>
 
-      <div className="flex items-center gap-2.5 bg-[#0a0e1a]/88 backdrop-blur-md px-4 py-2.5">
+      <div className="flex items-center gap-2 sm:gap-2.5 bg-[#0a0e1a]/88 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5">
         <button
           type="button"
           onClick={() => setPlaying(!playing)}
-          className="px-3.5 py-2 border border-[#2d3340] font-mono text-[10px] tracking-widest uppercase text-[#f0f0f0] hover:border-[#ff5436] hover:text-[#ff5436] transition-colors"
+          className="px-3 py-1.5 sm:px-3.5 sm:py-2 border border-[#2d3340] font-mono text-[9px] sm:text-[10px] tracking-widest uppercase text-[#f0f0f0] hover:border-[#ff5436] hover:text-[#ff5436] transition-colors active:border-[#ff5436] active:text-[#ff5436]"
         >
           {playing ? '⏸ Pause' : '▶ Play'}
         </button>
         <button
           type="button"
           onClick={cycleSpeed}
-          className="px-3.5 py-2 border border-[#2d3340] font-mono text-[10px] tracking-widest text-[#f0f0f0] hover:border-[#ff5436] hover:text-[#ff5436] transition-colors"
+          className="px-3 py-1.5 sm:px-3.5 sm:py-2 border border-[#2d3340] font-mono text-[9px] sm:text-[10px] tracking-widest text-[#f0f0f0] hover:border-[#ff5436] hover:text-[#ff5436] transition-colors active:border-[#ff5436] active:text-[#ff5436]"
         >
           {playbackSpeed}x
         </button>

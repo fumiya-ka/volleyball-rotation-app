@@ -1,4 +1,4 @@
-import { ROTATIONS, POS_BASE, type PlayerId } from './rotations'
+import { ROTATIONS, type PlayerId } from './rotations'
 import type { Phase } from '../store/sceneStore'
 import { C as DEFAULT_C } from './sequenceConstants'
 import type { SequenceConstants } from './sequenceConstants'
@@ -130,9 +130,11 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
   const posOf = (id: PlayerId) => assignment[id]
   const isFront = (id: PlayerId) => C.frontRowPositions.includes(posOf(id))
 
+  const getPosBase = (posNum: number) => C.posBase[String(posNum)]
+
   const base = {} as Record<PlayerId, { x: number; z: number }>
   for (const id of Object.keys(assignment) as PlayerId[]) {
-    base[id] = { ...POS_BASE[assignment[id]] }
+    base[id] = { ...getPosBase(assignment[id]) }
   }
 
   const SETTER_POS = C.setterPos
@@ -148,11 +150,11 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
   const RECEPTION_START = {} as Record<PlayerId, { x: number; z: number }>
   for (const id of Object.keys(assignment) as PlayerId[]) {
     const posNum = assignment[id]
-    const b = POS_BASE[posNum]
+    const pb = getPosBase(posNum)
     if (C.frontRowPositions.includes(posNum)) {
-      RECEPTION_START[id] = { x: b.x, z: R.frontRowZ }
+      RECEPTION_START[id] = { x: pb.x, z: R.frontRowZ }
     } else {
-      RECEPTION_START[id] = { x: b.x, z: b.z }
+      RECEPTION_START[id] = { x: pb.x, z: pb.z }
     }
   }
 
@@ -161,7 +163,7 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     const frontPair = R.backSetterFrontPair
     const frontPosNum = frontPair[String(sPos)]
     if (frontPosNum) {
-      const frontBase = POS_BASE[frontPosNum]
+      const frontBase = getPosBase(frontPosNum)
       RECEPTION_START['S'] = { x: frontBase.x, z: R.backSetterBehindZ }
     }
   }
@@ -274,7 +276,7 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     const serverId = (Object.keys(assignment) as PlayerId[]).find(
       (id) => assignment[id] === 1,
     )!
-    const serverPos = { x: POS_BASE[1].x, z: S.serverZ }
+    const serverPos = { x: getPosBase(1).x, z: S.serverZ }
     const finalPos = SPECIALIST_POS
     const { serveHit, ballOver, endTime } = T
 

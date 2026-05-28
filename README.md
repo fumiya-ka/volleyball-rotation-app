@@ -5,6 +5,11 @@
 **技術スタック**: React + Three.js (R3F) + Zustand + Tailwind CSS v4 + Vite + TypeScript  
 **公開**: Vercel（`git push` で自動デプロイ）
 
+## 設計書
+
+- [基本設計書](docs/basic-design.md) — システム概要・機能要件・技術スタック・画面構成
+- [詳細設計書](docs/detail-design.md) — データ構造・アニメーション設計・コンポーネント設計・DEV機能
+
 ---
 
 ## プロジェクト構成

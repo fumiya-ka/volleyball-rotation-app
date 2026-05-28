@@ -74,6 +74,30 @@ const GROUPS: GroupDef[] = [
     ],
   },
   {
+    key: 'posBase',
+    label: '📐 ローテーション基本ポジション',
+    fields: [
+      ...vec2('posBase.1', 'Pos1（右後）', -6, 6,
+        'ポジション1（右後衛）の基本X座標。正=右、負=左。通常は右側（+3）。',
+        'ポジション1（右後衛）の基本Z座標。小=ネット寄り、大=エンドライン寄り。通常は後衛（7.0）。' + COORD_TIP),
+      ...vec2('posBase.2', 'Pos2（右前）', -6, 6,
+        'ポジション2（右前衛）の基本X座標。通常は右側（+3）。',
+        'ポジション2（右前衛）の基本Z座標。通常は前衛（1.8）。' + COORD_TIP),
+      ...vec2('posBase.3', 'Pos3（中前）', -6, 6,
+        'ポジション3（中前衛）の基本X座標。通常は中央（0）。',
+        'ポジション3（中前衛）の基本Z座標。通常は前衛（1.8）。' + COORD_TIP),
+      ...vec2('posBase.4', 'Pos4（左前）', -6, 6,
+        'ポジション4（左前衛）の基本X座標。通常は左側（-3）。',
+        'ポジション4（左前衛）の基本Z座標。通常は前衛（1.8）。' + COORD_TIP),
+      ...vec2('posBase.5', 'Pos5（左後）', -6, 6,
+        'ポジション5（左後衛）の基本X座標。通常は左側（-3）。',
+        'ポジション5（左後衛）の基本Z座標。通常は後衛（7.0）。' + COORD_TIP),
+      ...vec2('posBase.6', 'Pos6（中後）', -6, 6,
+        'ポジション6（中後衛）の基本X座標。通常は中央（0）。',
+        'ポジション6（中後衛）の基本Z座標。通常は後衛（7.0）。' + COORD_TIP),
+    ],
+  },
+  {
     key: 'reception-timing',
     label: '① レセプション / タイミング（秒）',
     fields: [
@@ -391,7 +415,7 @@ function InfoTooltip({ tip }: { tip: string }) {
     <div className="flex-shrink-0" onMouseEnter={handleEnter} onMouseLeave={() => setPos(null)}>
       <span
         ref={iconRef}
-        className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-[8px] leading-none cursor-help text-[#4b5563] hover:text-[#8892a4] border border-[#2d3340] hover:border-[#4b5563] transition-colors select-none"
+        className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[12px] leading-none cursor-help text-[#4b5563] hover:text-[#8892a4] border border-[#2d3340] hover:border-[#4b5563] transition-colors select-none"
       >
         ?
       </span>
@@ -399,12 +423,12 @@ function InfoTooltip({ tip }: { tip: string }) {
       {pos &&
         createPortal(
           <div
-            className="pointer-events-none fixed z-[9999] w-64 p-2.5 bg-[#1a2035] border border-[#3d4f6b] text-[9px] leading-relaxed shadow-xl rounded"
+            className="pointer-events-none fixed z-[9999] w-96 p-4 bg-[#1a2035] border border-[#3d4f6b] text-[14px] leading-relaxed shadow-xl rounded"
             style={{ top: pos.top, right: pos.right, transform: 'translateY(-50%)' }}
           >
-            <div className="font-mono text-[8px] text-[#ff5436] mb-1">{headline}</div>
+            <div className="font-mono text-[12px] text-[#ff5436] mb-1.5">{headline}</div>
             {body && <div className="text-[#8892a4]">{body}</div>}
-            <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-[5px] border-t-transparent border-b-transparent border-l-[#3d4f6b]" />
+            <div className="absolute right-[-7px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-b-[6px] border-l-[7px] border-t-transparent border-b-transparent border-l-[#3d4f6b]" />
           </div>,
           document.body,
         )}
@@ -431,11 +455,11 @@ function FieldRow({ field, constants }: { field: FieldDef; constants: SequenceCo
   )
 
   return (
-    <div className="flex items-center gap-1.5 py-1 px-2 hover:bg-[#1a2035] rounded min-w-0">
+    <div className="flex items-center gap-2.5 py-1.5 px-3 hover:bg-[#1a2035] rounded min-w-0">
       {/* ラベル */}
       <span
-        className="text-[10px] text-[#8892a4] flex-shrink-0 truncate"
-        style={{ width: '120px' }}
+        className="text-[15px] text-[#8892a4] flex-shrink-0 truncate"
+        style={{ width: '180px' }}
         title={field.path}
       >
         {field.label}
@@ -452,7 +476,7 @@ function FieldRow({ field, constants }: { field: FieldDef; constants: SequenceCo
         step={field.step}
         value={numValue}
         onChange={(e) => handleChange(parseFloat(e.target.value))}
-        className="flex-1 min-w-0 h-1 accent-[#ff5436] cursor-pointer"
+        className="flex-1 min-w-0 h-1.5 accent-[#ff5436] cursor-pointer"
       />
 
       {/* 数値入力 */}
@@ -463,7 +487,7 @@ function FieldRow({ field, constants }: { field: FieldDef; constants: SequenceCo
         step={field.step}
         value={numValue}
         onChange={(e) => handleChange(parseFloat(e.target.value))}
-        className="w-14 flex-shrink-0 text-[10px] text-right bg-[#0d1424] border border-[#2d3340] text-[#c9cdd4] px-1 py-0.5 rounded focus:border-[#ff5436] focus:outline-none"
+        className="w-20 flex-shrink-0 text-[15px] text-right bg-[#0d1424] border border-[#2d3340] text-[#c9cdd4] px-1.5 py-1 rounded focus:border-[#ff5436] focus:outline-none"
       />
     </div>
   )
@@ -490,15 +514,15 @@ function GroupSection({
     <div className="border-b border-[#1e2840]">
       <button
         onClick={() => onToggle(group.key)}
-        className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-bold text-[#c9cdd4] hover:text-white hover:bg-[#1a2035] transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 text-[16px] font-bold text-[#c9cdd4] hover:text-white hover:bg-[#1a2035] transition-colors"
       >
         <span>{group.label}</span>
-        <span className="text-[#4b5563] text-[10px] ml-2 flex-shrink-0">
+        <span className="text-[#4b5563] text-[15px] ml-3 flex-shrink-0">
           {isOpen ? '▲' : '▼'} {group.fields.length}項目
         </span>
       </button>
       {isOpen && (
-        <div className="pb-2 overflow-x-hidden">
+        <div className="pb-3 overflow-x-hidden">
           {group.fields.map((f) => (
             <FieldRow key={f.path} field={f} constants={constants} />
           ))}
@@ -512,9 +536,9 @@ function GroupSection({
 // メインコンポーネント
 // ────────────────────────────────────────────────────────────
 
-const MIN_WIDTH = 340
-const MAX_WIDTH = 800
-const DEFAULT_WIDTH = 440
+const MIN_WIDTH = 510
+const MAX_WIDTH = 1000
+const DEFAULT_WIDTH = 660
 
 export default function DevPanel() {
   const [visible, setVisible] = useState(false)
@@ -606,41 +630,41 @@ export default function DevPanel() {
     <>
       {/* ドラッグ中座標オーバーレイ */}
       {dragPos && (
-        <div className="fixed bottom-[7rem] left-1/2 -translate-x-1/2 z-50 font-mono text-[10px] bg-[#0a0e1a]/95 border border-[#ff5436] px-3 py-2 backdrop-blur-md pointer-events-none">
-          <span className="text-[#ff5436] font-bold mr-2">✥ DRAG</span>
+        <div className="fixed bottom-[7rem] left-1/2 -translate-x-1/2 z-50 font-mono text-[15px] bg-[#0a0e1a]/95 border border-[#ff5436] px-4 py-3 backdrop-blur-md pointer-events-none">
+          <span className="text-[#ff5436] font-bold mr-3">✥ DRAG</span>
           <span className="text-[#c9cdd4]">{dragLabel}</span>
-          <span className="text-[#6b7280] ml-3">
-            X:<span className="text-[#fbbf24] ml-1">{dragPos.x.toFixed(2)}</span>
-            {'  '}Y:<span className="text-[#fbbf24] ml-1">{dragPos.y.toFixed(2)}</span>
-            {'  '}Z:<span className="text-[#fbbf24] ml-1">{dragPos.z.toFixed(2)}</span>
+          <span className="text-[#6b7280] ml-4">
+            X:<span className="text-[#fbbf24] ml-1.5">{dragPos.x.toFixed(2)}</span>
+            {'  '}Y:<span className="text-[#fbbf24] ml-1.5">{dragPos.y.toFixed(2)}</span>
+            {'  '}Z:<span className="text-[#fbbf24] ml-1.5">{dragPos.z.toFixed(2)}</span>
           </span>
         </div>
       )}
 
       {/* 保存済み位置オーバーライド一覧 */}
       {overrideEntries.length > 0 && !dragPos && (
-        <div className="fixed bottom-[7rem] left-1/2 -translate-x-1/2 z-50 font-mono text-[9px] bg-[#0a0e1a]/95 border border-[#2d3340] px-3 py-2 backdrop-blur-md">
-          <div className="flex items-center justify-between mb-1.5">
+        <div className="fixed bottom-[7rem] left-1/2 -translate-x-1/2 z-50 font-mono text-[14px] bg-[#0a0e1a]/95 border border-[#2d3340] px-4 py-3 backdrop-blur-md">
+          <div className="flex items-center justify-between mb-2">
             <span className="text-[#6b7280] tracking-wider">📍 固定位置</span>
             <button
               onClick={clearAllPositionOverrides}
-              className="text-[#4b5563] hover:text-[#ff5436] transition-colors ml-4 text-[9px]"
+              className="text-[#4b5563] hover:text-[#ff5436] transition-colors ml-6 text-[14px]"
             >
               全解除
             </button>
           </div>
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {overrideEntries.map(([id, pos]) => (
-              <div key={id} className="flex items-center gap-2">
-                <span className="text-[#c9cdd4] w-8">{id}</span>
+              <div key={id} className="flex items-center gap-3">
+                <span className="text-[#c9cdd4] w-12">{id}</span>
                 <span className="text-[#6b7280]">
-                  X:<span className="text-[#fbbf24] ml-0.5">{pos.x.toFixed(2)}</span>
-                  {' '}Y:<span className="text-[#fbbf24] ml-0.5">{pos.y.toFixed(2)}</span>
-                  {' '}Z:<span className="text-[#fbbf24] ml-0.5">{pos.z.toFixed(2)}</span>
+                  X:<span className="text-[#fbbf24] ml-1">{pos.x.toFixed(2)}</span>
+                  {' '}Y:<span className="text-[#fbbf24] ml-1">{pos.y.toFixed(2)}</span>
+                  {' '}Z:<span className="text-[#fbbf24] ml-1">{pos.z.toFixed(2)}</span>
                 </span>
                 <button
                   onClick={() => clearPositionOverride(id as Parameters<typeof clearPositionOverride>[0])}
-                  className="text-[#4b5563] hover:text-[#ff5436] transition-colors"
+                  className="text-[#4b5563] hover:text-[#ff5436] transition-colors text-[16px]"
                 >
                   ×
                 </button>
@@ -653,7 +677,7 @@ export default function DevPanel() {
       {/* トグルボタン */}
       <button
         onClick={() => setVisible((v) => !v)}
-        className={`fixed bottom-4 right-4 z-50 font-mono text-[10px] px-3 py-1.5 border transition-all ${
+        className={`fixed bottom-6 right-6 z-50 font-mono text-[15px] px-4 py-2.5 border transition-all ${
           visible
             ? 'bg-[#ff5436] text-[#0a0e1a] border-[#ff5436]'
             : 'bg-[#0a0e1a]/80 border-[#2d3340] text-[#6b7280] hover:text-[#ff5436] hover:border-[#ff5436]'
@@ -672,32 +696,32 @@ export default function DevPanel() {
         >
           {/* ← リサイズハンドル（左端） */}
           <div
-            className="absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize z-10 group"
+            className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize z-10 group"
             onMouseDown={handleResizeStart}
           >
             {/* ホバー時にハイライト */}
             <div className="absolute inset-0 group-hover:bg-[#ff5436]/30 active:bg-[#ff5436]/50 transition-colors" />
             {/* ドラッグ用グリップドット */}
-            <div className="absolute top-1/2 left-0 -translate-y-1/2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity pl-0.5">
+            <div className="absolute top-1/2 left-0 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity pl-0.5">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-0.5 h-0.5 rounded-full bg-[#ff5436]" />
+                <div key={i} className="w-1 h-1 rounded-full bg-[#ff5436]" />
               ))}
             </div>
           </div>
 
           {/* ヘッダー */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-[#1e2840] flex-shrink-0 pl-5">
+          <div className="flex items-center justify-between px-6 py-3 border-b border-[#1e2840] flex-shrink-0 pl-7">
             <div className="min-w-0">
-              <h2 className="font-mono text-[11px] font-bold text-[#ff5436] tracking-widest">
+              <h2 className="font-mono text-[16px] font-bold text-[#ff5436] tracking-widest">
                 DEV PANEL
               </h2>
-              <p className="font-mono text-[9px] text-[#4b5563] mt-0.5">
+              <p className="font-mono text-[14px] text-[#4b5563] mt-1">
                 ` キーで開閉　左端ドラッグで幅調整
               </p>
             </div>
             <button
               onClick={() => setVisible(false)}
-              className="text-[#4b5563] hover:text-white text-lg leading-none ml-2 flex-shrink-0"
+              className="text-[#4b5563] hover:text-white text-[28px] leading-none ml-3 flex-shrink-0"
             >
               ×
             </button>
@@ -712,14 +736,14 @@ export default function DevPanel() {
               <button
                 key={key}
                 onClick={() => setMainTab(key)}
-                className={`flex-1 font-mono text-[10px] py-2 transition-colors ${
+                className={`flex-1 font-mono text-[15px] py-3 transition-colors ${
                   mainTab === key
                     ? 'bg-[#1a2035] text-[#ff5436] border-b-2 border-[#ff5436]'
                     : 'text-[#4b5563] hover:text-[#8892a4]'
                 }`}
               >
                 {label}
-                {key === 'constants' && isDirty && <span className="text-[#fbbf24] ml-1">●</span>}
+                {key === 'constants' && isDirty && <span className="text-[#fbbf24] ml-1.5">●</span>}
               </button>
             ))}
           </div>
@@ -738,28 +762,28 @@ export default function DevPanel() {
                   />
                 ))}
               </div>
-              <div className="flex-shrink-0 border-t border-[#1e2840] p-3 space-y-2">
-                <p className="font-mono text-[9px] text-[#4b5563] leading-relaxed">
+              <div className="flex-shrink-0 border-t border-[#1e2840] p-4 space-y-3">
+                <p className="font-mono text-[14px] text-[#4b5563] leading-relaxed">
                   調整後は <span className="text-[#ff5436]">Download JSON</span> →{' '}
                   <code className="text-[#8892a4]">src/data/sequenceConstants.json</code> に上書き保存
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <button
                     onClick={handleCopyJson}
-                    className="flex-1 font-mono text-[10px] py-1.5 bg-[#1a2035] border border-[#2d3340] text-[#c9cdd4] hover:border-[#ff5436] hover:text-white transition-colors"
+                    className="flex-1 font-mono text-[15px] py-2.5 bg-[#1a2035] border border-[#2d3340] text-[#c9cdd4] hover:border-[#ff5436] hover:text-white transition-colors"
                   >
                     Copy JSON
                   </button>
                   <button
                     onClick={handleDownloadJson}
-                    className="flex-1 font-mono text-[10px] py-1.5 bg-[#ff5436] text-[#0a0e1a] font-bold hover:bg-[#ff6b52] transition-colors"
+                    className="flex-1 font-mono text-[15px] py-2.5 bg-[#ff5436] text-[#0a0e1a] font-bold hover:bg-[#ff6b52] transition-colors"
                   >
                     Download JSON
                   </button>
                 </div>
                 <button
                   onClick={handleReset}
-                  className="w-full font-mono text-[10px] py-1 border border-[#2d3340] text-[#4b5563] hover:border-[#6b7280] hover:text-[#8892a4] transition-colors"
+                  className="w-full font-mono text-[15px] py-2 border border-[#2d3340] text-[#4b5563] hover:border-[#6b7280] hover:text-[#8892a4] transition-colors"
                 >
                   Reset to default
                 </button>

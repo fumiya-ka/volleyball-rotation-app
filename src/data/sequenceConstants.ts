@@ -4,6 +4,7 @@ import type { PlayerId } from './rotations'
 export type Vec2 = { x: number; z: number }
 
 export interface SequenceConstants {
+  posBase: Record<string, Vec2>
   setterPos: Vec2
   frontRowPositions: number[]
   sample: { idleBobY: number }

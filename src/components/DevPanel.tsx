@@ -5,11 +5,11 @@
  * Download JSON でファイル保存補助
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useConstantsStore, getByPath } from '../store/constantsStore'
 import { useSceneStore } from '../store/sceneStore'
-import { PLAYERS } from '../data/rotations'
+import { PLAYERS, ROTATIONS, type PlayerId } from '../data/rotations'
 import DescriptionsEditor from './DescriptionsEditor'
 import type { SequenceConstants } from '../data/sequenceConstants'
 
@@ -549,7 +549,35 @@ export default function DevPanel() {
   const draggedId = useSceneStore((s) => s.draggedId)
   const playerPos = useSceneStore((s) => s.playerPos)
   const ballPos = useSceneStore((s) => s.ballPos)
+  const rotation = useSceneStore((s) => s.rotation)
   const positionOverrides = useSceneStore((s) => s.positionOverrides)
+
+  // 現在のローテーションに応じて「レセプション開始位置」グループを動的生成し、
+  // posBase グループの直後に挿入する
+  const groups = useMemo<GroupDef[]>(() => {
+    const playerIds = Object.keys(ROTATIONS[rotation]) as PlayerId[]
+    const startFields: FieldDef[] = playerIds.flatMap((id) =>
+      vec2(
+        `reception.byRotation.${rotation}.${id}`,
+        id,
+        -6,
+        6,
+        `${rotation} レセプション開始位置 ${id} のX座標。${COORD_TIP}`,
+        `${rotation} レセプション開始位置 ${id} のZ座標。${COORD_TIP}`,
+      ),
+    )
+    const receptionStartGroup: GroupDef = {
+      key: 'reception-start',
+      label: `📥 レセプション開始位置 (${rotation})`,
+      fields: startFields,
+    }
+    const idx = GROUPS.findIndex((g) => g.key === 'posBase')
+    return [
+      ...GROUPS.slice(0, idx + 1),
+      receptionStartGroup,
+      ...GROUPS.slice(idx + 1),
+    ]
+  }, [rotation])
   const clearPositionOverride = useSceneStore((s) => s.clearPositionOverride)
   const clearAllPositionOverrides = useSceneStore((s) => s.clearAllPositionOverrides)
   const overrideEntries = Object.entries(positionOverrides) as [string, { x: number; y: number; z: number }][]
@@ -752,7 +780,7 @@ export default function DevPanel() {
           {mainTab === 'constants' && (
             <>
               <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                {GROUPS.map((g) => (
+                {groups.map((g) => (
                   <GroupSection
                     key={g.key}
                     group={g}

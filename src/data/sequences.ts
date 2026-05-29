@@ -148,30 +148,9 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
   const sFront = isFront('S')
 
   const RECEPTION_START = {} as Record<PlayerId, { x: number; z: number }>
+  const startByRot = R.byRotation[rotKey]
   for (const id of Object.keys(assignment) as PlayerId[]) {
-    const posNum = assignment[id]
-    const pb = getPosBase(posNum)
-    if (C.frontRowPositions.includes(posNum)) {
-      RECEPTION_START[id] = { x: pb.x, z: R.frontRowZ }
-    } else {
-      RECEPTION_START[id] = { x: pb.x, z: pb.z }
-    }
-  }
-
-  if (!sFront) {
-    const sPos = assignment['S']
-    const frontPair = R.backSetterFrontPair
-    const frontPosNum = frontPair[String(sPos)]
-    if (frontPosNum) {
-      const frontBase = getPosBase(frontPosNum)
-      RECEPTION_START['S'] = { x: frontBase.x, z: R.backSetterBehindZ }
-    }
-  }
-
-  if (rotKey === 'S1') {
-    for (const [id, pos] of Object.entries(R.s1Overrides) as [PlayerId, { x: number; z: number }][]) {
-      RECEPTION_START[id] = pos
-    }
+    RECEPTION_START[id] = { ...startByRot[id] }
   }
 
   const SPECIALIST_POS = {} as Record<PlayerId, { x: number; z: number }>
@@ -193,8 +172,8 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     const opponentLand = B.opponentLand as { x: number; y: number; z: number }
 
     const finalPos = SPECIALIST_POS
-    const receiverId = backOH || (!opFront ? ('OP' as PlayerId) : null) || backMB
-    const receiverStart = receiverId ? RECEPTION_START[receiverId] : R.fallbackReceiver
+    const receiverId = (backOH || (!opFront ? ('OP' as PlayerId) : null) || backMB)!
+    const receiverStart = RECEPTION_START[receiverId]
 
     const leftFrontId = (Object.keys(assignment) as PlayerId[]).find(
       (id) => assignment[id] === 4,

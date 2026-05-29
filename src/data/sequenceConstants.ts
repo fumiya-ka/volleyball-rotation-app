@@ -9,13 +9,9 @@ export interface SequenceConstants {
   frontRowPositions: number[]
   sample: { idleBobY: number }
   reception: {
-    frontRowZ: number
-    backSetterBehindZ: number
-    backSetterFrontPair: Record<string, number>
-    fallbackReceiver: Vec2
     fallbackSpiker: Vec2
     tossTargetZ: number
-    s1Overrides: Record<PlayerId, Vec2>
+    byRotation: Record<string, Record<PlayerId, Vec2>>
     timing: Record<string, number>
     ball: Record<string, number | Vec2 | { x: number; y: number; z: number }>
     players: Record<string, number>

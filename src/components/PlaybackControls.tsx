@@ -52,7 +52,7 @@ export default function PlaybackControls() {
   return (
     <div className="fixed bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 sm:gap-3 w-[min(520px,94vw)]">
       <div className="flex items-center gap-2 sm:gap-2.5 w-full px-1">
-        <span className="font-mono text-[9px] sm:text-[10px] text-[#c9cdd4] tracking-wider min-w-[38px] sm:min-w-[44px] text-center tabular-nums">
+        <span className="font-mono text-[16.5px] sm:text-[18px] text-[#c9cdd4] tracking-wider min-w-[57px] sm:min-w-[66px] text-center tabular-nums">
           {displayTime.toFixed(2)}s
         </span>
         <div
@@ -73,7 +73,7 @@ export default function PlaybackControls() {
             style={{ left: `${progress}%` }}
           />
         </div>
-        <span className="font-mono text-[9px] sm:text-[10px] text-[#c9cdd4] tracking-wider min-w-[38px] sm:min-w-[44px] text-center tabular-nums">
+        <span className="font-mono text-[16.5px] sm:text-[18px] text-[#c9cdd4] tracking-wider min-w-[57px] sm:min-w-[66px] text-center tabular-nums">
           {duration.toFixed(2)}s
         </span>
       </div>
@@ -82,14 +82,14 @@ export default function PlaybackControls() {
         <button
           type="button"
           onClick={() => setPlaying(!playing)}
-          className="px-3 py-1.5 sm:px-3.5 sm:py-2 border border-[#2d3340] font-mono text-[9px] sm:text-[10px] tracking-widest uppercase text-[#f0f0f0] hover:border-[#ff5436] hover:text-[#ff5436] transition-colors active:border-[#ff5436] active:text-[#ff5436]"
+          className="px-[18px] py-[9px] sm:px-[21px] sm:py-3 border border-[#2d3340] font-mono text-[16.5px] sm:text-[18px] tracking-widest uppercase text-[#f0f0f0] hover:border-[#ff5436] hover:text-[#ff5436] transition-colors active:border-[#ff5436] active:text-[#ff5436]"
         >
           {playing ? '⏸ Pause' : '▶ Play'}
         </button>
         <button
           type="button"
           onClick={cycleSpeed}
-          className="px-3 py-1.5 sm:px-3.5 sm:py-2 border border-[#2d3340] font-mono text-[9px] sm:text-[10px] tracking-widest text-[#f0f0f0] hover:border-[#ff5436] hover:text-[#ff5436] transition-colors active:border-[#ff5436] active:text-[#ff5436]"
+          className="px-[18px] py-[9px] sm:px-[21px] sm:py-3 border border-[#2d3340] font-mono text-[16.5px] sm:text-[18px] tracking-widest text-[#f0f0f0] hover:border-[#ff5436] hover:text-[#ff5436] transition-colors active:border-[#ff5436] active:text-[#ff5436]"
         >
           {playbackSpeed}x
         </button>

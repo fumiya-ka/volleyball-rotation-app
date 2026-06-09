@@ -3,6 +3,7 @@ import TopBar from './components/TopBar'
 import PhaseTabs from './components/PhaseTabs'
 import Telop from './components/Telop'
 import PlaybackControls from './components/PlaybackControls'
+import Onboarding from './components/Onboarding'
 import DevPanel from './components/DevPanel'
 
 function App() {
@@ -16,6 +17,9 @@ function App() {
       <PhaseTabs />
       <Telop />
       <PlaybackControls />
+
+      {/* 初回オンボーディング / ヘルプ */}
+      <Onboarding />
 
       {/* 開発ツール（dev環境のみ） */}
       {import.meta.env.DEV && <DevPanel />}

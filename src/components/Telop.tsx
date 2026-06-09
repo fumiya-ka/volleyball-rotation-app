@@ -54,19 +54,19 @@ export default function Telop() {
                 <div className="flex items-center gap-2">
                   {/* 選手カラーバッジ */}
                   <span
-                    className="font-mono text-[9px] sm:text-[10px] tracking-widest px-2 py-0.5 font-bold"
+                    className="font-mono text-[11px] sm:text-[12px] tracking-widest px-2 py-0.5 font-bold"
                     style={{ backgroundColor: playerColor, color: '#0a0e1a' }}
                   >
                     {selectedPlayer}
                   </span>
-                  <span className="font-mono text-[9px] sm:text-[10px] tracking-widest text-[#6b7280]">
+                  <span className="font-mono text-[12px] sm:text-[13px] tracking-widest text-[#9ca3af]">
                     個人別解説 / {rotation}
                   </span>
                 </div>
                 {/* 全体解説に戻るボタン */}
                 <button
                   onClick={() => setSelectedPlayer(null)}
-                  className="font-mono text-[9px] sm:text-[10px] tracking-wider text-[#6b7280] hover:text-[#c9cdd4] transition-colors flex items-center gap-1"
+                  className="font-mono text-[12px] sm:text-[13px] tracking-wider text-[#9ca3af] hover:text-[#e8ebef] transition-colors flex items-center gap-1"
                 >
                   ← 全体解説
                 </button>
@@ -74,40 +74,40 @@ export default function Telop() {
 
               {/* ポジション */}
               <div
-                className="font-mono text-[10px] sm:text-[11px] tracking-wider mb-1 sm:mb-1.5"
+                className="font-mono text-[11px] sm:text-[12px] tracking-wider mb-1 sm:mb-1.5"
                 style={{ color: playerColor }}
               >
                 📍 {playerDesc.position}
               </div>
 
               {/* タイトル */}
-              <h2 className="text-sm sm:text-lg font-bold text-white mb-1.5 sm:mb-2 leading-snug">
+              <h2 className="text-base sm:text-xl font-extrabold text-white mb-1.5 sm:mb-2 leading-snug">
                 {selectedPlayer} — {PLAYERS.find((p) => p.id === selectedPlayer)?.label ?? selectedPlayer} の役割
               </h2>
 
               {/* 解説本文 */}
-              <p className="text-[11px] sm:text-[13px] leading-relaxed text-[#c9cdd4]">
+              <p className="text-[14px] sm:text-[16px] leading-relaxed text-[#dde1e7]">
                 {playerDesc.action}
               </p>
 
               {/* ヒント */}
-              <p className="mt-2 text-[9px] sm:text-[10px] text-[#4b5563] font-mono tracking-wider">
+              <p className="mt-2 text-[12px] sm:text-[13px] text-[#9ca3af] font-mono tracking-wider">
                 他の選手をタップして切替 / コート背景タップで全体解説に戻る
               </p>
             </>
           ) : (
             /* ── 全体解説 ── */
             <>
-              <div className="font-mono text-[9px] sm:text-[10px] tracking-widest text-[#ff5436] mb-1 sm:mb-1.5">
+              <div className="font-mono text-[11px] sm:text-[12px] tracking-widest text-[#ff5436] mb-1 sm:mb-1.5">
                 {overallDesc.badge}
               </div>
-              <h2 className="text-sm sm:text-lg font-bold text-white mb-1.5 sm:mb-2 leading-snug">
+              <h2 className="text-base sm:text-xl font-extrabold text-white mb-1.5 sm:mb-2 leading-snug">
                 {overallDesc.title}
               </h2>
               {overallDesc.desc.split('\n\n').map((para, i) => (
                 <p
                   key={i}
-                  className={`text-[11px] sm:text-[13px] leading-relaxed text-[#c9cdd4] ${
+                  className={`text-[14px] sm:text-[16px] leading-relaxed text-[#dde1e7] ${
                     i > 0 ? 'mt-1.5 pt-1.5 sm:mt-2 sm:pt-2 border-t border-[#2d3340]' : ''
                   }`}
                 >
@@ -115,7 +115,7 @@ export default function Telop() {
                 </p>
               ))}
               {/* ヒント */}
-              <p className="mt-2 text-[9px] sm:text-[10px] text-[#4b5563] font-mono tracking-wider">
+              <p className="mt-2 text-[12px] sm:text-[13px] text-[#9ca3af] font-mono tracking-wider">
                 選手をタップすると個人別解説を表示
               </p>
             </>

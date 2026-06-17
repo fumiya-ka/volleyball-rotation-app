@@ -221,7 +221,7 @@
       "receiveArc": 2.5,
       "setterY": 2.7,
       "setterArc": 2,
-      "tossY": 3,
+      "tossY": 3.4,
       "tossArc": 1.2,
       "opponentLand": {
         "x": -2,
@@ -411,7 +411,7 @@
       },
       "backMB": {
         "x": 0,
-        "z": 6.5
+        "z": 7.8
       },
       "backRight": {
         "x": 3,
@@ -477,7 +477,9 @@
       "offBlockMove": 1,
       "digMove": 1,
       "digContact": 2,
-      "blockJump": 1.8,
+      "blockJump": 0.8,
+      "blockTakeoff": 1.15,
+      "blockJumpLand": 2.0,
       "blockLand": 1.9,
       "digJump": 0.15,
       "backSetterMove": 3.6
@@ -539,7 +541,7 @@
       "riseY": 2.4,
       "riseArc": 1.5,
       "setterY": 2.8,
-      "tossY": 3,
+      "tossY": 3.4,
       "tossArc": 1.5,
       "landY": 0.5,
       "landZ": -6,

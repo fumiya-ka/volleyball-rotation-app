@@ -215,14 +215,19 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
           { t: endTime, x: f.x, z: f.z },
         ])
       } else if (id === spikerId) {
-        const spikerMoveStart = rotKey === 'S1' ? spikeHit + P.spikerLandDelay : ballLands
+        // 打点(ボールのインパクト)とスパイカーの「手」を揃える:
+        //  - ジャンプの頂点を spikeHit に一致させる（弧を spikeHit 中心に対称化）
+        //  - 頂点での手の高さ(足元+HAND_OFFSET)＝ボールのインパクト高(tossY) になるジャンプ量にする
+        //    （HAND_OFFSET=2.4 は頭=1.7 より上。手を伸ばして打つ表現。tossY はネット天端2.93より上）
+        const HAND_OFFSET = 2.4 // 手を伸ばした打点のローカル高さ（足元から／頭より上）
+        const spikerJumpLand = 2 * spikeHit - P.spikerApproach // 頂点が spikeHit に来る着地時刻
+        const handAlignedJump = (B.tossY as number) - HAND_OFFSET // 頂点で手(打点)がボールに一致
         playerSeqs[id] = pkf([
           { t: 0.0, x: startP.x, z: startP.z },
           { t: serveHit, x: startP.x, z: startP.z },
           { t: P.spikerHold, x: startP.x, z: startP.z },
           { t: P.spikerApproach, x: tossTargetX, z: tossTargetZ + P.spikerApproachZOffset },
-          { t: spikeHit, x: tossTargetX, z: tossTargetZ, jump: P.spikerJump },
-          { t: spikerMoveStart, x: tossTargetX, z: tossTargetZ },
+          { t: spikerJumpLand, x: tossTargetX, z: tossTargetZ - P.spikerApproachZOffset, jump: handAlignedJump },
           { t: endTime, x: f.x, z: f.z },
         ])
       } else if (id === receiverId) {
@@ -277,13 +282,15 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
       const b = serveStart?.[id] ?? base[id]
       const f = finalPos[id]
       if (id === serverId) {
-        // サーバーは最初からボール位置（エンドライン後方のサーブ位置）に立つ。
-        // 打った後にコート内（守備の定位置）へ入る。
+        // サーバーは最初からボール位置(ライン後方)に立ち、手(打点)をボールに合わせて打つ → コートへ。
+        // ジャンプの頂点を serveHit に一致させ、頂点での手の高さ＝インパクト高(hitY)にする。
+        const HAND_OFFSET = 2.4
+        const serverJumpLand = 2 * serveHit - P.serverToss // 頂点が serveHit に来る着地時刻
+        const handAlignedJump = B.hitY - HAND_OFFSET // 頂点で手がインパクト高(hitY)に一致
         playerSeqs[id] = pkf([
           { t: 0.0, x: serverPos.x, z: serverPos.z },
           { t: P.serverToss, x: serverPos.x, z: serverPos.z },
-          { t: serveHit, x: serverPos.x, z: serverPos.z, jump: P.serverJump },
-          { t: P.serverLand, x: serverPos.x, z: serverPos.z },
+          { t: serverJumpLand, x: serverPos.x, z: serverPos.z, jump: handAlignedJump },
           { t: endTime, x: f.x, z: f.z },
         ])
       } else {
@@ -353,8 +360,8 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
           playerSeqs[id] = pkf([
             { t: 0.0, x: rb.x, z: rb.z },
             { t: P.blocker1Move, x: D.blockPos1.x, z: D.blockPos1.z },
-            { t: T.spikeHit, x: D.blockPos1.x, z: D.blockPos1.z, jump: P.blockJump },
-            { t: P.blockLand, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: P.blockTakeoff, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: P.blockJumpLand, x: D.blockPos1.x, z: D.blockPos1.z, jump: P.blockJump },
             { t: T.digHold, x: D.blockPos1.x, z: D.blockPos1.z },
             { t: T.attackReady, x: SETTER_POS.x, z: SETTER_POS.z },
             { t: endTime, x: SETTER_POS.x, z: SETTER_POS.z },
@@ -364,8 +371,8 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
           playerSeqs[id] = pkf([
             { t: 0.0, x: rb.x, z: rb.z },
             { t: P.blocker1Move, x: D.blockPos1.x, z: D.blockPos1.z },
-            { t: T.spikeHit, x: D.blockPos1.x, z: D.blockPos1.z, jump: P.blockJump },
-            { t: P.blockLand, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: P.blockTakeoff, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: P.blockJumpLand, x: D.blockPos1.x, z: D.blockPos1.z, jump: P.blockJump },
             { t: T.digHold, x: D.blockPos1.x, z: D.blockPos1.z },
             { t: T.attackReady, x: ap.x, z: ap.z },
             { t: endTime, x: ap.x, z: ap.z },
@@ -377,8 +384,8 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
         playerSeqs[id] = pkf([
           { t: 0.0, x: rb.x, z: rb.z },
           { t: P.blocker2Move, x: D.blockPos2.x, z: D.blockPos2.z },
-          { t: T.spikeHit, x: D.blockPos2.x, z: D.blockPos2.z, jump: P.blockJump },
-          { t: P.blockLand, x: D.blockPos2.x, z: D.blockPos2.z },
+          { t: P.blockTakeoff, x: D.blockPos2.x, z: D.blockPos2.z },
+          { t: P.blockJumpLand, x: D.blockPos2.x, z: D.blockPos2.z, jump: P.blockJump },
           { t: T.digHold, x: D.blockPos2.x, z: D.blockPos2.z },
           { t: T.attackReady, x: ap.x, z: ap.z },
           { t: endTime, x: ap.x, z: ap.z },
@@ -429,7 +436,6 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
   const setterJump = ap.setterJump as number
   const spikerReady = ap.spikerReady as number
   const spikerApproach = ap.spikerApproach as number
-  const spikerJump = ap.spikerJump as number
   const spikerLandDelay = ap.spikerLandDelay as number
   const spikerApproachZOffset = ap.spikerApproachZOffset as number
   const mbApproach = ap.mbApproach as number
@@ -489,13 +495,15 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
         { t: endTime, x: rb.x, z: rb.z },
       ])
     } else if (id === frontOHId) {
-      // 前衛OH＝左からスパイク
+      // 前衛OH＝左からスパイク。打点(ボール)とスパイカーの手を揃える（頂点=spikeHit、手=tossY、ネット上）
+      const HAND_OFFSET = 2.4
+      const spikerJumpLand = 2 * spikeHit - spikerApproach // 頂点が spikeHit に来る着地時刻
+      const handAlignedJump = B.tossY - HAND_OFFSET // 頂点で手がボールに一致
       playerSeqs[id] = pkf([
         { t: 0.0, x: rb.x, z: rb.z },
         { t: spikerReady, x: rb.x, z: rb.z },
         { t: spikerApproach, x: tossTargetX, z: tossTargetZ + spikerApproachZOffset },
-        { t: spikeHit, x: tossTargetX, z: tossTargetZ, jump: spikerJump },
-        { t: spikeHit + spikerLandDelay, x: tossTargetX, z: tossTargetZ },
+        { t: spikerJumpLand, x: tossTargetX, z: tossTargetZ - spikerApproachZOffset, jump: handAlignedJump },
         { t: ballLands, x: tossTargetX, z: tossTargetZ },
         { t: endTime, x: rb.x, z: rb.z },
       ])

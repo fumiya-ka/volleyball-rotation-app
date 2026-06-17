@@ -22,6 +22,7 @@ export interface SequenceConstants {
   }
   serve: {
     serverZ: number
+    byRotation?: Record<string, Partial<Record<PlayerId, Vec2>>>
     timing: Record<string, number>
     ball: Record<string, number>
     ballTimes: Record<string, number>

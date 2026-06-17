@@ -256,6 +256,9 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
       (id) => assignment[id] === 1,
     )!
     const serverPos = { x: getPosBase(1).x, z: S.serverZ }
+    // ローテごとのサーブ初期位置（オーバーラップを崩さず移動を最短化するスタッキング）。
+    // 未定義のローテは従来どおり posBase から。
+    const serveStart = S.byRotation?.[rotKey]
     const finalPos = SPECIALIST_POS
     const { serveHit, ballOver, endTime } = T
 
@@ -271,12 +274,13 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
 
     const playerSeqs = {} as Record<PlayerId, PlayerKeyframe[]>
     for (const id of Object.keys(assignment) as PlayerId[]) {
-      const b = base[id]
+      const b = serveStart?.[id] ?? base[id]
       const f = finalPos[id]
       if (id === serverId) {
+        // サーバーは最初からボール位置（エンドライン後方のサーブ位置）に立つ。
+        // 打った後にコート内（守備の定位置）へ入る。
         playerSeqs[id] = pkf([
-          { t: 0.0, x: b.x, z: b.z },
-          { t: P.serverMove, x: serverPos.x, z: serverPos.z },
+          { t: 0.0, x: serverPos.x, z: serverPos.z },
           { t: P.serverToss, x: serverPos.x, z: serverPos.z },
           { t: serveHit, x: serverPos.x, z: serverPos.z, jump: P.serverJump },
           { t: P.serverLand, x: serverPos.x, z: serverPos.z },

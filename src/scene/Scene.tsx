@@ -19,7 +19,7 @@ export default function Scene() {
       <Canvas
         shadows
         dpr={[1, 2]}
-        camera={{ position: [14, 12, 16], fov: 45 }}
+        camera={{ position: [14, 11.2, 16], fov: 45 }}
         gl={{ antialias: true }}
         onPointerMissed={() => setSelectedPlayer(null)}
       >
@@ -54,7 +54,7 @@ export default function Scene() {
 
         {/* カメラ操作（DEVドラッグ中は無効化） */}
         <OrbitControls
-          target={[0, 1.5, 4]}
+          target={[0, 0.7, 4]}
           enableDamping
           dampingFactor={0.05}
           minDistance={8}

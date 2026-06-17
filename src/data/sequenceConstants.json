@@ -350,7 +350,7 @@
     },
     "ball": {
       "holdY": 1.3,
-      "tossUpY": 5.55,
+      "tossUpY": 3.3,
       "hitY": 2.6,
       "overNetY": 2.8,
       "overNetZ": -3,

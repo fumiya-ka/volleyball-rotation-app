@@ -348,17 +348,53 @@
         "z": 4.5
       }
     },
+    "base": {
+      "frontOH": {
+        "x": -2.8,
+        "z": 0.6
+      },
+      "frontMB": {
+        "x": 0,
+        "z": 0.5
+      },
+      "frontRight": {
+        "x": 2.8,
+        "z": 0.5
+      },
+      "backOH": {
+        "x": -3,
+        "z": 6
+      },
+      "backMB": {
+        "x": 0,
+        "z": 6.5
+      },
+      "backRight": {
+        "x": 3,
+        "z": 6
+      }
+    },
     "blockPos1": {
-      "x": 2.5,
+      "x": 2.6,
       "z": 0.4
     },
     "blockPos2": {
-      "x": 0.8,
+      "x": 1.2,
       "z": 0.4
     },
     "offBlockPos": {
-      "x": -3,
-      "z": 2.5
+      "x": -2.8,
+      "z": 2
+    },
+    "attackPrep": {
+      "frontMB": {
+        "x": 0,
+        "z": 3
+      },
+      "frontRight": {
+        "x": 3,
+        "z": 3
+      }
     },
     "timing": {
       "spikeWindup": 0.8,
@@ -366,16 +402,17 @@
       "ballDig": 2,
       "digHold": 2.8,
       "ballToSetter": 3.6,
+      "attackReady": 3.7,
       "end": 4.2
     },
     "ball": {
       "spikeOrigin": {
-        "x": -2,
+        "x": 2,
         "y": 2.8,
         "z": -1.5
       },
       "spikeApproach": {
-        "x": -2.5,
+        "x": 2.5,
         "y": 3.2,
         "z": -0.5
       },

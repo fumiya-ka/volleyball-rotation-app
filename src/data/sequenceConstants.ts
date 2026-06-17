@@ -31,6 +31,8 @@ export interface SequenceConstants {
     duration: number
     ballDigPoint: Vec2
     digByPosition: Record<string, Vec2>
+    base: Record<string, Vec2>
+    attackPrep: Record<string, Vec2>
     blockPos1: Vec2
     blockPos2: Vec2
     offBlockPos: Vec2

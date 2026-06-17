@@ -426,6 +426,7 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
   const spikerJump = ap.spikerJump as number
   const spikerLandDelay = ap.spikerLandDelay as number
   const spikerApproachZOffset = ap.spikerApproachZOffset as number
+  const mbApproach = ap.mbApproach as number
   const mbQuickStart = ap.mbQuickStart as number
   const mbQuickLand = ap.mbQuickLand as number
   const mbQuickJump = ap.mbQuickJump as number
@@ -433,19 +434,30 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
   const fakeApproach = ap.fakeApproach as number
   const fakeJump = ap.fakeJump as number
 
-  const leftFrontId = (Object.keys(assignment) as PlayerId[]).find(
-    (id) => assignment[id] === 4,
-  )
-  const spikerId =
-    leftFrontId || frontOH || (opFront ? ('OP' as PlayerId) : null) || frontMB
-  const spikerBase = spikerId ? base[spikerId] : A.fallbackSpiker
+  // 攻撃時もローテ番号ではなく「役割」で位置取り（OH=左 / MB=中央 / S・OP=右、前衛後衛はそのローテの前後）
+  const frontOHId: PlayerId = isFront('OH1') ? 'OH1' : 'OH2'
+  const backOHId: PlayerId = frontOHId === 'OH1' ? 'OH2' : 'OH1'
+  const frontMBId: PlayerId = isFront('MB1') ? 'MB1' : 'MB2'
+  const backMBId: PlayerId = frontMBId === 'MB1' ? 'MB2' : 'MB1'
+  const frontRightId: PlayerId = isFront('S') ? 'S' : 'OP' // 前衛側の S/OP
+  const backRightId: PlayerId = frontRightId === 'S' ? 'OP' : 'S' // 後衛側の S/OP
+
+  const ab = A.base
+  const roleBase: Record<PlayerId, { x: number; z: number }> = {
+    [frontOHId]: ab.frontOH,
+    [frontMBId]: ab.frontMB,
+    [frontRightId]: ab.frontRight,
+    [backOHId]: ab.backOH,
+    [backMBId]: ab.backMB,
+    [backRightId]: ab.backRight,
+  } as Record<PlayerId, { x: number; z: number }>
 
   const { spikeHit, ballLands, endTime } = T
   const { ballRise, ballHold, ballToToss } = T
 
-  const tossTargetX = spikerBase.x
-  const tossTargetZ = Math.max(spikerBase.z - A.tossTargetZOffset, A.tossTargetZMin)
-  const finalPos = SPECIALIST_POS
+  // 左サイド(OH)へ上げる
+  const tossTargetX = A.tossTarget.x
+  const tossTargetZ = A.tossTarget.z
 
   const ballSeq: BallKeyframe[] = [
     { t: 0.0, x: SETTER_POS.x, y: B.riseY, z: SETTER_POS.z + B.riseZOffset, arc: B.riseArc },
@@ -459,66 +471,57 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
 
   const playerSeqs = {} as Record<PlayerId, PlayerKeyframe[]>
   for (const id of Object.keys(assignment) as PlayerId[]) {
-    const b = base[id]
-    const f = finalPos[id]
+    const rb = roleBase[id]
 
     if (id === 'S') {
+      // セッターはネット際でトス → 役割定位置へ戻る
       playerSeqs[id] = pkf([
         { t: 0.0, x: SETTER_POS.x, z: SETTER_POS.z },
         { t: ballRise, x: SETTER_POS.x, z: SETTER_POS.z, jump: setterJump },
         { t: spikeHit, x: SETTER_POS.x, z: SETTER_POS.z },
         { t: ballLands, x: SETTER_POS.x, z: SETTER_POS.z },
-        { t: endTime, x: f.x, z: f.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
-    } else if (id === spikerId) {
+    } else if (id === frontOHId) {
+      // 前衛OH＝左からスパイク
       playerSeqs[id] = pkf([
-        { t: 0.0, x: b.x, z: b.z },
-        { t: spikerReady, x: b.x, z: b.z },
+        { t: 0.0, x: rb.x, z: rb.z },
+        { t: spikerReady, x: rb.x, z: rb.z },
         { t: spikerApproach, x: tossTargetX, z: tossTargetZ + spikerApproachZOffset },
         { t: spikeHit, x: tossTargetX, z: tossTargetZ, jump: spikerJump },
         { t: spikeHit + spikerLandDelay, x: tossTargetX, z: tossTargetZ },
         { t: ballLands, x: tossTargetX, z: tossTargetZ },
-        { t: endTime, x: f.x, z: f.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
-    } else if (frontMB && id === frontMB && spikerId !== frontMB) {
-      const mbBase = base[frontMB]
+    } else if (id === frontMBId) {
+      // 前衛MB＝中央でクイック。助走（前方移動）→ ほぼ垂直ジャンプ に分離（前飛びを防ぐ）
       playerSeqs[id] = pkf([
-        { t: 0.0, x: mbBase.x, z: mbBase.z },
-        { t: fakeReady, x: mbBase.x, z: mbBase.z },
+        { t: 0.0, x: rb.x, z: rb.z },
+        { t: fakeReady, x: rb.x, z: rb.z },
+        { t: mbApproach, x: mbQuick.x, z: mbQuick.z + spikerApproachZOffset },
         { t: mbQuickStart, x: mbQuick.x, z: mbQuick.z, jump: mbQuickJump },
         { t: mbQuickLand, x: mbQuick.x, z: mbQuick.z },
         { t: ballLands, x: mbQuick.x, z: mbQuick.z },
-        { t: endTime, x: f.x, z: f.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
-    } else if (id === 'OP' && opFront && spikerId !== 'OP') {
-      const opBase = base['OP']
-      const opZ = Math.max(opBase.z - A.fakeApproachZOffset, A.fakeApproachZMin)
+    } else if (id === frontRightId) {
+      // 前衛の S/OP（=OP）＝右から攻撃助走（おとり）。Sが前衛のときは上の id==='S' で処理済み
+      const ra = A.rightAttack
       playerSeqs[id] = pkf([
-        { t: 0.0, x: opBase.x, z: opBase.z },
-        { t: fakeReady, x: opBase.x, z: opBase.z },
-        { t: fakeApproach, x: opBase.x, z: opZ },
-        { t: spikeHit, x: opBase.x, z: opZ, jump: fakeJump },
-        { t: spikeHit + spikerLandDelay, x: opBase.x, z: opZ },
-        { t: ballLands, x: opBase.x, z: opZ },
-        { t: endTime, x: f.x, z: f.z },
-      ])
-    } else if (frontOH && id === frontOH && spikerId !== frontOH) {
-      const ohBase = base[frontOH]
-      const ohZ = Math.max(ohBase.z - A.fakeApproachZOffset, A.fakeApproachZMin)
-      playerSeqs[id] = pkf([
-        { t: 0.0, x: ohBase.x, z: ohBase.z },
-        { t: fakeReady, x: ohBase.x, z: ohBase.z },
-        { t: fakeApproach, x: ohBase.x, z: ohZ },
-        { t: spikeHit, x: ohBase.x, z: ohZ, jump: fakeJump },
-        { t: spikeHit + spikerLandDelay, x: ohBase.x, z: ohZ },
-        { t: ballLands, x: ohBase.x, z: ohZ },
-        { t: endTime, x: f.x, z: f.z },
+        { t: 0.0, x: rb.x, z: rb.z },
+        { t: fakeReady, x: rb.x, z: rb.z },
+        { t: fakeApproach, x: ra.x, z: ra.z },
+        { t: spikeHit, x: ra.x, z: ra.z, jump: fakeJump },
+        { t: spikeHit + spikerLandDelay, x: ra.x, z: ra.z },
+        { t: ballLands, x: ra.x, z: ra.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
     } else {
+      // 後衛（OH/MB/OP）は役割ベースの定位置でカバー
       playerSeqs[id] = pkf([
-        { t: 0.0, x: b.x, z: b.z },
-        { t: ballLands, x: b.x, z: b.z },
-        { t: endTime, x: f.x, z: f.z },
+        { t: 0.0, x: rb.x, z: rb.z },
+        { t: ballLands, x: rb.x, z: rb.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
     }
   }

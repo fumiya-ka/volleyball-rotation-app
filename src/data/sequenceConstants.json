@@ -442,6 +442,40 @@
     "tossTargetZOffset": 0.5,
     "fakeApproachZMin": 0.9,
     "fakeApproachZOffset": 0.3,
+    "base": {
+      "frontOH": {
+        "x": -3.2,
+        "z": 3.2
+      },
+      "frontMB": {
+        "x": 0,
+        "z": 2.8
+      },
+      "frontRight": {
+        "x": 3.2,
+        "z": 3.2
+      },
+      "backOH": {
+        "x": -3,
+        "z": 6.5
+      },
+      "backMB": {
+        "x": 0,
+        "z": 6.5
+      },
+      "backRight": {
+        "x": 3,
+        "z": 6.5
+      }
+    },
+    "tossTarget": {
+      "x": -3,
+      "z": 0.8
+    },
+    "rightAttack": {
+      "x": 3,
+      "z": 1
+    },
     "timing": {
       "ballRise": 0.5,
       "ballHold": 0.8,
@@ -469,8 +503,9 @@
       "spikerJump": 2.2,
       "spikerLandDelay": 0.4,
       "spikerApproachZOffset": 0.3,
-      "mbQuickStart": 1.1,
-      "mbQuickLand": 1.5,
+      "mbApproach": 1.1,
+      "mbQuickStart": 1.7,
+      "mbQuickLand": 1.9,
       "mbQuickPos": {
         "x": 0,
         "z": 0.7

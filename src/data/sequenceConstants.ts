@@ -46,6 +46,9 @@ export interface SequenceConstants {
     tossTargetZOffset: number
     fakeApproachZMin: number
     fakeApproachZOffset: number
+    base: Record<string, Vec2>
+    tossTarget: Vec2
+    rightAttack: Vec2
     timing: Record<string, number>
     ball: Record<string, number>
     players: Record<string, number | Vec2>

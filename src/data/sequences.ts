@@ -264,6 +264,10 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     // ローテごとのサーブ初期位置（オーバーラップを崩さず移動を最短化するスタッキング）。
     // 未定義のローテは従来どおり posBase から。
     const serveStart = S.byRotation?.[rotKey]
+    // 後衛MB（サーバー以外で後衛のMB）はサーブ後も初期位置に停止させる（移動しない）。
+    const staticBackMB = (['MB1', 'MB2'] as PlayerId[]).find(
+      (id) => id !== serverId && !isFront(id),
+    )
     const finalPos = SPECIALIST_POS
     const { serveHit, ballOver, endTime } = T
 
@@ -287,11 +291,20 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
         const HAND_OFFSET = 2.4
         const serverJumpLand = 2 * serveHit - P.serverToss // 頂点が serveHit に来る着地時刻
         const handAlignedJump = B.hitY - HAND_OFFSET // 頂点で手がインパクト高(hitY)に一致
+        // サーバーが後衛MB(S3/S6)の場合は、打った後の位置取りを他ローテの後衛MBと同じく深く(z7.8)
+        const serverIsMB = id === 'MB1' || id === 'MB2'
+        const serverDest = serverIsMB ? { x: 0, z: 7.8 } : f
         playerSeqs[id] = pkf([
           { t: 0.0, x: serverPos.x, z: serverPos.z },
           { t: P.serverToss, x: serverPos.x, z: serverPos.z },
           { t: serverJumpLand, x: serverPos.x, z: serverPos.z, jump: handAlignedJump },
-          { t: endTime, x: f.x, z: f.z },
+          { t: endTime, x: serverDest.x, z: serverDest.z },
+        ])
+      } else if (id === staticBackMB) {
+        // 後衛MBはサーブ後も初期位置（深い守備位置）に停止
+        playerSeqs[id] = pkf([
+          { t: 0.0, x: b.x, z: b.z },
+          { t: endTime, x: b.x, z: b.z },
         ])
       } else {
         playerSeqs[id] = pkf([

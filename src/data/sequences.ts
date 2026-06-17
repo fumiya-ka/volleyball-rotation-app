@@ -269,15 +269,15 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
       (id) => id !== serverId && !isFront(id),
     )
     const finalPos = SPECIALIST_POS
-    const { serveHit, ballOver, endTime } = T
+    const { serveHit, endTime } = T
 
+    // サーブのボール軌道を単純なサイン弧2本で表現:
+    //  手元で保持 → トス(1区間のサイン弧で頂点→打点) → サーブ飛球(1区間のサイン弧でネット越え→着地)
     const ballSeq: BallKeyframe[] = [
       { t: 0.0, x: serverPos.x, y: B.holdY, z: serverPos.z, arc: 0 },
       { t: BT.hold, x: serverPos.x, y: B.holdY, z: serverPos.z, arc: 0 },
-      { t: BT.tossUp, x: serverPos.x, y: B.tossUpY, z: serverPos.z, arc: 0 },
-      { t: serveHit, x: serverPos.x, y: B.hitY, z: serverPos.z, arc: 0 },
-      { t: ballOver, x: serverPos.x * B.overNetXFactor, y: B.overNetY, z: B.overNetZ, arc: 0 },
-      { t: B.landTime, x: serverPos.x * B.landXFactor, y: B.landY, z: B.landZ, arc: B.landArc },
+      { t: serveHit, x: serverPos.x, y: B.hitY, z: serverPos.z, arc: B.tossArc },
+      { t: B.landTime, x: serverPos.x * B.landXFactor, y: B.landY, z: B.landZ, arc: B.flightArc },
       { t: endTime, x: serverPos.x * B.landXFactor, y: B.landY, z: B.landZ, arc: 0 },
     ]
 

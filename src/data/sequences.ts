@@ -299,100 +299,116 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     const T = D.timing
     const B = D.ball
     const P = D.players
+    const setOrigin = B.setOrigin as { x: number; y: number; z: number }
     const spikeOrigin = B.spikeOrigin as { x: number; y: number; z: number }
     const spikeApproach = B.spikeApproach as { x: number; y: number; z: number }
 
-    const blocker1Id = (Object.keys(assignment) as PlayerId[]).find(
-      (id) => assignment[id] === 2,
-    )!
-    const blocker2Id = (Object.keys(assignment) as PlayerId[]).find(
-      (id) => assignment[id] === 3,
-    )!
-    const offBlockId = (Object.keys(assignment) as PlayerId[]).find(
-      (id) => assignment[id] === 4,
-    )!
-    const pos1Id = (Object.keys(assignment) as PlayerId[]).find(
-      (id) => assignment[id] === 1,
-    )!
-    const pos5Id = (Object.keys(assignment) as PlayerId[]).find(
-      (id) => assignment[id] === 5,
-    )!
-    const pos6Id = (Object.keys(assignment) as PlayerId[]).find(
-      (id) => assignment[id] === 6,
-    )!
+    // 被スパイク時はローテ番号ではなく「役割」で位置取りする。
+    // すでにボールは相手に渡っており、各選手は守備の定位置にスイッチ済みのため。
+    // OH=左, MB=中央, S/OP=右（前衛/後衛はそのローテの前後に従う）。
+    const frontOHId: PlayerId = isFront('OH1') ? 'OH1' : 'OH2'
+    const backOHId: PlayerId = frontOHId === 'OH1' ? 'OH2' : 'OH1'
+    const frontMBId: PlayerId = isFront('MB1') ? 'MB1' : 'MB2'
+    const backMBId: PlayerId = frontMBId === 'MB1' ? 'MB2' : 'MB1'
+    const frontRightId: PlayerId = isFront('S') ? 'S' : 'OP' // 前衛側の S/OP
+    const backRightId: PlayerId = frontRightId === 'S' ? 'OP' : 'S' // 後衛側の S/OP
 
-    const digPositions: Partial<Record<PlayerId, { x: number; z: number }>> = {
-      [pos1Id]: D.digByPosition['1'],
-      [pos5Id]: D.digByPosition['5'],
-      [pos6Id]: D.digByPosition['6'],
-    }
+    const db = D.base
+    const roleBase: Record<PlayerId, { x: number; z: number }> = {
+      [frontOHId]: db.frontOH,
+      [frontMBId]: db.frontMB,
+      [frontRightId]: db.frontRight,
+      [backOHId]: db.backOH,
+      [backMBId]: db.backMB,
+      [backRightId]: db.backRight,
+    } as Record<PlayerId, { x: number; z: number }>
+
     const ballDigPoint = D.ballDigPoint
-    const digReceiverId = pos5Id
+    const digReceiverId = backOHId // クロスの打球は左後ろの OH が処理
     const { end: endTime } = T
 
+    // ボールは止めず連続的に動かす（保持＝反則のため）。
+    // 相手セット→スパイク→ディグ→セッター、を一筆書きで。
     const ballSeq: BallKeyframe[] = [
-      { t: 0.0, ...spikeOrigin, arc: 0 },
-      { t: T.spikeWindup, ...spikeOrigin, arc: 0 },
+      { t: 0.0, ...setOrigin, arc: 0 },
+      { t: T.spikeWindup, ...spikeOrigin, arc: B.setArc as number },
       { t: T.spikeHit, ...spikeApproach, arc: 0 },
       { t: T.ballDig, x: ballDigPoint.x, y: B.digY as number, z: ballDigPoint.z, arc: B.digArc as number },
-      { t: T.digHold, x: ballDigPoint.x, y: B.digY as number, z: ballDigPoint.z, arc: 0 },
       { t: T.ballToSetter, x: SETTER_POS.x, y: B.setterY as number, z: SETTER_POS.z, arc: B.setterArc as number },
       { t: endTime, x: SETTER_POS.x, y: B.setterY as number, z: SETTER_POS.z, arc: 0 },
     ]
 
     const playerSeqs = {} as Record<PlayerId, PlayerKeyframe[]>
     for (const id of Object.keys(assignment) as PlayerId[]) {
-      const b = base[id]
-      if (id === blocker1Id) {
+      const rb = roleBase[id]
+      if (id === frontRightId) {
+        // 右ブロッカー（相手アウトサイドをブロック）。
+        // 前衛セッターならブロック後にトスへ、アタッカー(OP)なら着地後アタックライン際へ下がって攻撃準備
+        // ブロック→着地→(ディグまで保持)→ digHold で一斉にトランジション開始 → attackReady で同時到達
+        if (id === 'S') {
+          playerSeqs[id] = pkf([
+            { t: 0.0, x: rb.x, z: rb.z },
+            { t: P.blocker1Move, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: T.spikeHit, x: D.blockPos1.x, z: D.blockPos1.z, jump: P.blockJump },
+            { t: P.blockLand, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: T.digHold, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: T.attackReady, x: SETTER_POS.x, z: SETTER_POS.z },
+            { t: endTime, x: SETTER_POS.x, z: SETTER_POS.z },
+          ])
+        } else {
+          const ap = D.attackPrep.frontRight
+          playerSeqs[id] = pkf([
+            { t: 0.0, x: rb.x, z: rb.z },
+            { t: P.blocker1Move, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: T.spikeHit, x: D.blockPos1.x, z: D.blockPos1.z, jump: P.blockJump },
+            { t: P.blockLand, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: T.digHold, x: D.blockPos1.x, z: D.blockPos1.z },
+            { t: T.attackReady, x: ap.x, z: ap.z },
+            { t: endTime, x: ap.x, z: ap.z },
+          ])
+        }
+      } else if (id === frontMBId) {
+        // ミドルブロッカー（中央→右へ寄せて2枚で締める）。digHold で一斉スタート → attackReady でアタックライン際へ
+        const ap = D.attackPrep.frontMB
         playerSeqs[id] = pkf([
-          { t: 0.0, x: b.x, z: b.z },
-          { t: P.blocker1Move, x: D.blockPos1.x, z: D.blockPos1.z },
-          { t: T.spikeHit, x: D.blockPos1.x, z: D.blockPos1.z, jump: P.blockJump },
-          { t: P.blockLand, x: D.blockPos1.x, z: D.blockPos1.z },
-          { t: endTime, x: D.blockPos1.x, z: D.blockPos1.z },
-        ])
-      } else if (id === blocker2Id) {
-        playerSeqs[id] = pkf([
-          { t: 0.0, x: b.x, z: b.z },
+          { t: 0.0, x: rb.x, z: rb.z },
           { t: P.blocker2Move, x: D.blockPos2.x, z: D.blockPos2.z },
           { t: T.spikeHit, x: D.blockPos2.x, z: D.blockPos2.z, jump: P.blockJump },
           { t: P.blockLand, x: D.blockPos2.x, z: D.blockPos2.z },
-          { t: endTime, x: D.blockPos2.x, z: D.blockPos2.z },
+          { t: T.digHold, x: D.blockPos2.x, z: D.blockPos2.z },
+          { t: T.attackReady, x: ap.x, z: ap.z },
+          { t: endTime, x: ap.x, z: ap.z },
         ])
-      } else if (id === offBlockId) {
+      } else if (id === frontOHId) {
+        // オフブロッカー（左前→ネットから離れてコート内をカバー）
         playerSeqs[id] = pkf([
-          { t: 0.0, x: b.x, z: b.z },
+          { t: 0.0, x: rb.x, z: rb.z },
           { t: P.offBlockMove, x: D.offBlockPos.x, z: D.offBlockPos.z },
           { t: endTime, x: D.offBlockPos.x, z: D.offBlockPos.z },
         ])
       } else if (id === digReceiverId) {
-        const d = digPositions[id]!
+        // 左後ろ＝クロスに飛んだ打球をディグ
         playerSeqs[id] = pkf([
-          { t: 0.0, x: b.x, z: b.z },
-          { t: P.digMove, x: d.x, z: d.z },
+          { t: 0.0, x: rb.x, z: rb.z },
+          { t: P.digMove, x: rb.x, z: rb.z },
           { t: P.digContact, x: ballDigPoint.x, z: ballDigPoint.z },
           { t: T.digHold, x: ballDigPoint.x, z: ballDigPoint.z, jump: P.digJump },
           { t: endTime, x: ballDigPoint.x, z: ballDigPoint.z },
         ])
-      } else if (id === 'S' && !sFront) {
+      } else if (id === backRightId && id === 'S') {
+        // 後衛セッターは右後ろで守り、ディグ後にネットへ入って速攻に備える
+        // （ブロッカー2枚のアタックライン後退と同じ digHold→attackReady で同時に動く）
         playerSeqs[id] = pkf([
-          { t: 0.0, x: b.x, z: b.z },
-          { t: P.digMove, x: b.x, z: b.z },
-          { t: T.digHold, x: b.x, z: b.z },
-          { t: P.backSetterMove, x: SETTER_POS.x, z: SETTER_POS.z },
+          { t: 0.0, x: rb.x, z: rb.z },
+          { t: T.digHold, x: rb.x, z: rb.z },
+          { t: T.attackReady, x: SETTER_POS.x, z: SETTER_POS.z },
           { t: endTime, x: SETTER_POS.x, z: SETTER_POS.z },
         ])
-      } else if (digPositions[id]) {
-        const d = digPositions[id]!
-        playerSeqs[id] = pkf([
-          { t: 0.0, x: b.x, z: b.z },
-          { t: P.digMove, x: d.x, z: d.z },
-          { t: endTime, x: d.x, z: d.z },
-        ])
       } else {
+        // 中後ろ／右後ろ等は役割ベースの定位置で待機
         playerSeqs[id] = pkf([
-          { t: 0.0, x: b.x, z: b.z },
-          { t: endTime, x: b.x, z: b.z },
+          { t: 0.0, x: rb.x, z: rb.z },
+          { t: endTime, x: rb.x, z: rb.z },
         ])
       }
     }
@@ -412,6 +428,7 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
   const spikerJump = ap.spikerJump as number
   const spikerLandDelay = ap.spikerLandDelay as number
   const spikerApproachZOffset = ap.spikerApproachZOffset as number
+  const mbApproach = ap.mbApproach as number
   const mbQuickStart = ap.mbQuickStart as number
   const mbQuickLand = ap.mbQuickLand as number
   const mbQuickJump = ap.mbQuickJump as number
@@ -419,19 +436,30 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
   const fakeApproach = ap.fakeApproach as number
   const fakeJump = ap.fakeJump as number
 
-  const leftFrontId = (Object.keys(assignment) as PlayerId[]).find(
-    (id) => assignment[id] === 4,
-  )
-  const spikerId =
-    leftFrontId || frontOH || (opFront ? ('OP' as PlayerId) : null) || frontMB
-  const spikerBase = spikerId ? base[spikerId] : A.fallbackSpiker
+  // 攻撃時もローテ番号ではなく「役割」で位置取り（OH=左 / MB=中央 / S・OP=右、前衛後衛はそのローテの前後）
+  const frontOHId: PlayerId = isFront('OH1') ? 'OH1' : 'OH2'
+  const backOHId: PlayerId = frontOHId === 'OH1' ? 'OH2' : 'OH1'
+  const frontMBId: PlayerId = isFront('MB1') ? 'MB1' : 'MB2'
+  const backMBId: PlayerId = frontMBId === 'MB1' ? 'MB2' : 'MB1'
+  const frontRightId: PlayerId = isFront('S') ? 'S' : 'OP' // 前衛側の S/OP
+  const backRightId: PlayerId = frontRightId === 'S' ? 'OP' : 'S' // 後衛側の S/OP
+
+  const ab = A.base
+  const roleBase: Record<PlayerId, { x: number; z: number }> = {
+    [frontOHId]: ab.frontOH,
+    [frontMBId]: ab.frontMB,
+    [frontRightId]: ab.frontRight,
+    [backOHId]: ab.backOH,
+    [backMBId]: ab.backMB,
+    [backRightId]: ab.backRight,
+  } as Record<PlayerId, { x: number; z: number }>
 
   const { spikeHit, ballLands, endTime } = T
   const { ballRise, ballHold, ballToToss } = T
 
-  const tossTargetX = spikerBase.x
-  const tossTargetZ = Math.max(spikerBase.z - A.tossTargetZOffset, A.tossTargetZMin)
-  const finalPos = SPECIALIST_POS
+  // 左サイド(OH)へ上げる
+  const tossTargetX = A.tossTarget.x
+  const tossTargetZ = A.tossTarget.z
 
   const ballSeq: BallKeyframe[] = [
     { t: 0.0, x: SETTER_POS.x, y: B.riseY, z: SETTER_POS.z + B.riseZOffset, arc: B.riseArc },
@@ -445,66 +473,57 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
 
   const playerSeqs = {} as Record<PlayerId, PlayerKeyframe[]>
   for (const id of Object.keys(assignment) as PlayerId[]) {
-    const b = base[id]
-    const f = finalPos[id]
+    const rb = roleBase[id]
 
     if (id === 'S') {
+      // セッターはネット際でトス → 役割定位置へ戻る
       playerSeqs[id] = pkf([
         { t: 0.0, x: SETTER_POS.x, z: SETTER_POS.z },
         { t: ballRise, x: SETTER_POS.x, z: SETTER_POS.z, jump: setterJump },
         { t: spikeHit, x: SETTER_POS.x, z: SETTER_POS.z },
         { t: ballLands, x: SETTER_POS.x, z: SETTER_POS.z },
-        { t: endTime, x: f.x, z: f.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
-    } else if (id === spikerId) {
+    } else if (id === frontOHId) {
+      // 前衛OH＝左からスパイク
       playerSeqs[id] = pkf([
-        { t: 0.0, x: b.x, z: b.z },
-        { t: spikerReady, x: b.x, z: b.z },
+        { t: 0.0, x: rb.x, z: rb.z },
+        { t: spikerReady, x: rb.x, z: rb.z },
         { t: spikerApproach, x: tossTargetX, z: tossTargetZ + spikerApproachZOffset },
         { t: spikeHit, x: tossTargetX, z: tossTargetZ, jump: spikerJump },
         { t: spikeHit + spikerLandDelay, x: tossTargetX, z: tossTargetZ },
         { t: ballLands, x: tossTargetX, z: tossTargetZ },
-        { t: endTime, x: f.x, z: f.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
-    } else if (frontMB && id === frontMB && spikerId !== frontMB) {
-      const mbBase = base[frontMB]
+    } else if (id === frontMBId) {
+      // 前衛MB＝中央でクイック。助走（前方移動）→ ほぼ垂直ジャンプ に分離（前飛びを防ぐ）
       playerSeqs[id] = pkf([
-        { t: 0.0, x: mbBase.x, z: mbBase.z },
-        { t: fakeReady, x: mbBase.x, z: mbBase.z },
+        { t: 0.0, x: rb.x, z: rb.z },
+        { t: fakeReady, x: rb.x, z: rb.z },
+        { t: mbApproach, x: mbQuick.x, z: mbQuick.z + spikerApproachZOffset },
         { t: mbQuickStart, x: mbQuick.x, z: mbQuick.z, jump: mbQuickJump },
         { t: mbQuickLand, x: mbQuick.x, z: mbQuick.z },
         { t: ballLands, x: mbQuick.x, z: mbQuick.z },
-        { t: endTime, x: f.x, z: f.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
-    } else if (id === 'OP' && opFront && spikerId !== 'OP') {
-      const opBase = base['OP']
-      const opZ = Math.max(opBase.z - A.fakeApproachZOffset, A.fakeApproachZMin)
+    } else if (id === frontRightId) {
+      // 前衛の S/OP（=OP）＝右から攻撃助走（おとり）。Sが前衛のときは上の id==='S' で処理済み
+      const ra = A.rightAttack
       playerSeqs[id] = pkf([
-        { t: 0.0, x: opBase.x, z: opBase.z },
-        { t: fakeReady, x: opBase.x, z: opBase.z },
-        { t: fakeApproach, x: opBase.x, z: opZ },
-        { t: spikeHit, x: opBase.x, z: opZ, jump: fakeJump },
-        { t: spikeHit + spikerLandDelay, x: opBase.x, z: opZ },
-        { t: ballLands, x: opBase.x, z: opZ },
-        { t: endTime, x: f.x, z: f.z },
-      ])
-    } else if (frontOH && id === frontOH && spikerId !== frontOH) {
-      const ohBase = base[frontOH]
-      const ohZ = Math.max(ohBase.z - A.fakeApproachZOffset, A.fakeApproachZMin)
-      playerSeqs[id] = pkf([
-        { t: 0.0, x: ohBase.x, z: ohBase.z },
-        { t: fakeReady, x: ohBase.x, z: ohBase.z },
-        { t: fakeApproach, x: ohBase.x, z: ohZ },
-        { t: spikeHit, x: ohBase.x, z: ohZ, jump: fakeJump },
-        { t: spikeHit + spikerLandDelay, x: ohBase.x, z: ohZ },
-        { t: ballLands, x: ohBase.x, z: ohZ },
-        { t: endTime, x: f.x, z: f.z },
+        { t: 0.0, x: rb.x, z: rb.z },
+        { t: fakeReady, x: rb.x, z: rb.z },
+        { t: fakeApproach, x: ra.x, z: ra.z },
+        { t: spikeHit, x: ra.x, z: ra.z, jump: fakeJump },
+        { t: spikeHit + spikerLandDelay, x: ra.x, z: ra.z },
+        { t: ballLands, x: ra.x, z: ra.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
     } else {
+      // 後衛（OH/MB/OP）は役割ベースの定位置でカバー
       playerSeqs[id] = pkf([
-        { t: 0.0, x: b.x, z: b.z },
-        { t: ballLands, x: b.x, z: b.z },
-        { t: endTime, x: f.x, z: f.z },
+        { t: 0.0, x: rb.x, z: rb.z },
+        { t: ballLands, x: rb.x, z: rb.z },
+        { t: endTime, x: rb.x, z: rb.z },
       ])
     }
   }

@@ -1,12 +1,12 @@
 {
   "posBase": {
     "1": {
-      "x": -4.8,
-      "z": -9.6
+      "x": 3,
+      "z": 7
     },
     "2": {
-      "x": -4.95,
-      "z": -9.9
+      "x": 3,
+      "z": 1.8
     },
     "3": {
       "x": 0,
@@ -14,15 +14,15 @@
     },
     "4": {
       "x": -3,
-      "z": -7.75
+      "z": 1.8
     },
     "5": {
-      "x": -4.3,
-      "z": -10.75
+      "x": -3,
+      "z": 7
     },
     "6": {
       "x": 0,
-      "z": -12
+      "z": 7
     }
   },
   "setterPos": {
@@ -204,7 +204,7 @@
     "timing": {
       "serveHit": 0.6,
       "ballToReceiver": 1.7,
-      "ballToSetter": 2.4,
+      "ballToSetter": 2.6,
       "ballSetterHold": 2.7,
       "ballToToss": 4.05,
       "spikeHit": 4.1,
@@ -348,34 +348,77 @@
         "z": 4.5
       }
     },
+    "base": {
+      "frontOH": {
+        "x": -2.8,
+        "z": 0.6
+      },
+      "frontMB": {
+        "x": 0,
+        "z": 0.5
+      },
+      "frontRight": {
+        "x": 2.8,
+        "z": 0.5
+      },
+      "backOH": {
+        "x": -3,
+        "z": 6
+      },
+      "backMB": {
+        "x": 0,
+        "z": 6.5
+      },
+      "backRight": {
+        "x": 3,
+        "z": 6
+      }
+    },
     "blockPos1": {
-      "x": 2.5,
+      "x": 2.6,
       "z": 0.4
     },
     "blockPos2": {
-      "x": 0.8,
+      "x": 1.2,
       "z": 0.4
     },
     "offBlockPos": {
-      "x": -3,
-      "z": 2.5
+      "x": -2.8,
+      "z": 2
+    },
+    "attackPrep": {
+      "frontMB": {
+        "x": 0,
+        "z": 3
+      },
+      "frontRight": {
+        "x": 3,
+        "z": 3
+      }
     },
     "timing": {
       "spikeWindup": 0.8,
       "spikeHit": 1.4,
       "ballDig": 2,
       "digHold": 2.8,
-      "ballToSetter": 3.6,
+      "ballToSetter": 4.1,
+      "attackReady": 3.7,
       "end": 4.2
     },
     "ball": {
+      "setOrigin": {
+        "x": -0.5,
+        "y": 1.3,
+        "z": -2.5
+      },
+      "setArc": 1.2,
       "spikeOrigin": {
-        "x": -2,
+        "x": 2,
         "y": 2.8,
         "z": -1.5
       },
       "spikeApproach": {
-        "x": -2.5,
+        "x": 2.5,
         "y": 3.2,
         "z": -0.5
       },
@@ -405,10 +448,44 @@
     "tossTargetZOffset": 0.5,
     "fakeApproachZMin": 0.9,
     "fakeApproachZOffset": 0.3,
+    "base": {
+      "frontOH": {
+        "x": -3.2,
+        "z": 3.2
+      },
+      "frontMB": {
+        "x": 0,
+        "z": 2.8
+      },
+      "frontRight": {
+        "x": 3.2,
+        "z": 3.2
+      },
+      "backOH": {
+        "x": -3,
+        "z": 6.5
+      },
+      "backMB": {
+        "x": 0,
+        "z": 6.5
+      },
+      "backRight": {
+        "x": 3,
+        "z": 6.5
+      }
+    },
+    "tossTarget": {
+      "x": -3,
+      "z": 0.8
+    },
+    "rightAttack": {
+      "x": 3,
+      "z": 1
+    },
     "timing": {
       "ballRise": 0.5,
-      "ballHold": 0.8,
-      "ballToToss": 1.8,
+      "ballHold": 0.6,
+      "ballToToss": 2.0,
       "spikeHit": 2.1,
       "ballLands": 2.9,
       "endTime": 4.2
@@ -432,8 +509,9 @@
       "spikerJump": 2.2,
       "spikerLandDelay": 0.4,
       "spikerApproachZOffset": 0.3,
-      "mbQuickStart": 1.1,
-      "mbQuickLand": 1.5,
+      "mbApproach": 1.1,
+      "mbQuickStart": 1.7,
+      "mbQuickLand": 1.9,
       "mbQuickPos": {
         "x": 0,
         "z": 0.7

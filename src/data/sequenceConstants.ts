@@ -31,6 +31,8 @@ export interface SequenceConstants {
     duration: number
     ballDigPoint: Vec2
     digByPosition: Record<string, Vec2>
+    base: Record<string, Vec2>
+    attackPrep: Record<string, Vec2>
     blockPos1: Vec2
     blockPos2: Vec2
     offBlockPos: Vec2
@@ -44,6 +46,9 @@ export interface SequenceConstants {
     tossTargetZOffset: number
     fakeApproachZMin: number
     fakeApproachZOffset: number
+    base: Record<string, Vec2>
+    tossTarget: Vec2
+    rightAttack: Vec2
     timing: Record<string, number>
     ball: Record<string, number>
     players: Record<string, number | Vec2>

@@ -2,7 +2,14 @@
 
 **プロジェクト名**: バレーボール ローテーション解説サイト  
 **作成日**: 2026-05-28  
-**バージョン**: 1.0
+**最終更新**: 2026-06-17  
+**バージョン**: 1.1
+
+> v1.1 更新概要（ローテ動きの現実性修正）: 破損していた `posBase` を自陣座標へ復元 /
+> ディフェンス・攻撃の位置取りを「役割ベース（OH=左・MB=中央・S/OP=右）」に再設計 /
+> スパイク・サーブ・ブロックの打点をプレイヤーの手の位置に合わせる /
+> ボール保持（静止）を0.1秒以内に抑え軌道を単純なサインカーブ化 /
+> 自陣サーブの初期位置をオーバーラップ順を保った最短スタッキングに。
 
 ---
 
@@ -210,12 +217,23 @@ y = sin(k × π) × idleBobY    // idleBobY は sequenceConstants.json で定義
 
 | フェーズ | 処理の流れ |
 |---------|-----------|
-| **0: Reception** | サーブ受信位置から開始 → レシーブ → セッターへパス → トス → スパイク → 専門ポジションへ移動 |
-| **1: Serve** | ローテーション位置から開始 → サーバーがPos1外（エンドライン後）へ移動 → トス → ジャンプサーブ → 着地後専門ポジションへ |
-| **2: Defense** | ローテーション位置から開始 → Pos2・3がブロック（ジャンプ）、Pos5がディグ → セッターへパス |
-| **3: Attack** | セッターがトス（ジャンプセット）→ 主スパイカーが助走・ジャンプ / MB・OHがフェイク動作 → 専門ポジションへ |
+| **0: Reception** | レセプション開始位置（`reception.byRotation`、オーバーラップ則を満たす）→ レシーブ → セッターへパス → トス → スパイク（打点＝スパイカーの手・ネット上）→ 専門ポジションへ移動 |
+| **1: Serve** | 各ローテのサーブ初期位置（`serve.byRotation`、後述）から開始 → サーバーはボール位置（エンドライン後方）で構え→トス→打点を手に合わせてサーブ→コートへ。非サーバーは初期位置から専門ポジションへ最短移動（後衛MBは深い守備位置で停止） |
+| **2: Defense** | 役割ベースの守備配置（OH=左・MB=中央・S/OP=右、前後はそのローテに従う）→ 右2枚ブロック（前衛MB＋前衛S/OP、手をボールに合わせる）／前衛OHはオフブロッカー／後衛OH（左後ろ）がクロスをディグ → ディグ後、セッターのネットインとブロッカー2枚のアタックライン後退を同時実行 |
+| **3: Attack** | 役割ベース配置 → セッターがトス → 前衛OHが左からスパイク（打点＝手・ネット上）／前衛MBが中央クイック（助走→ほぼ垂直ジャンプ）／前衛OP（いれば）が右から助走 → 専門ポジションへ |
 
-**専門ポジション（SPECIALIST_POS）**: フェーズ終了後に全選手が移動する「守備隊形」ポジション。セッターが前衛か後衛かで2パターン（`sFront` / `sBack`）あり、`sequenceConstants.json` の `specialistPos` で定義。
+**役割ベースの位置取り（Defense / Attack / Serve初期位置）**: ローテ番号ではなく「役割」で左右を決める。前衛/後衛はそのローテの前後に従う。
+- OH → 左、MB → 中央、S・OP → 右（前衛側の S/OP・後衛側の S/OP を `isFront('S')` で判定）
+- 定数は `defense.base` / `attack.base` に役割スロット（`frontOH/frontMB/frontRight/backOH/backMB/backRight`）で定義
+
+**打点アライメント（スパイク・サーブ・ブロック共通）**: 「ボールが方向を変える座標＝プレイヤーの手の位置」になるよう揃える。
+- ジャンプの弧をヒット時刻中心に対称化し、**頂点でインパクト**させる（サンプラーはジャンプキーフレームで着地＝y0になるため、`2×hit − takeoff` を着地時刻にして頂点を hit に合わせる）
+- 頂点での手の高さ ＝ 足元 + `HAND_OFFSET(=2.4)`。これがボールのインパクト高（`tossY` / サーブ `hitY` / ブロック通過高）に一致するようジャンプ量を算出
+- スパイクのインパクト高 `tossY` はネット天端(2.93)より上（レセプション/攻撃とも 3.4）
+
+**ボール軌道の方針**: 「ボールを持ってはいけない」ルールに合わせ、プレー中のボール静止は0.1秒以内。各区間は1区間＝1つの弧（単純なサインカーブ）。被スパイクは「相手セット↑→スパイク↓→ディグ↑→セッター」を連続的に描く。
+
+**専門ポジション（SPECIALIST_POS）**: プレー終了後に移動する「守備隊形」ポジション。セッターが前衛か後衛かで2パターン（`sFront` / `sBack`）あり、`sequenceConstants.json` の `specialistPos` で定義。
 
 ### 3.4 アニメーションループ制御
 
@@ -331,16 +349,25 @@ function setByPath(obj, "reception.timing.serveHit", 1.2)
 
 | キー | 内容 |
 |-----|------|
+| `posBase` | ポジション番号(1〜6)→自陣コート座標。serve/defense/attack の基準位置（`rotations.ts` の `POS_BASE` と一致する自陣座標） |
+| `reception.byRotation` | ローテ別レセプション開始位置（オーバーラップ則を満たす） |
 | `reception.timing` | レセプションフェーズの各イベント時刻 |
-| `reception.ball` | ボール軌道の座標・弧の高さ |
+| `reception.ball` | ボール軌道の座標・弧の高さ（`tossY`=打点高=3.4 ネット上） |
 | `reception.players` | 選手移動タイミング・ジャンプ高さ |
-| `serve.timing` / `serve.ball` / `serve.players` | サーブフェーズ同上 |
-| `defense.timing` / `defense.ball` / `defense.players` | ディフェンスフェーズ同上 |
-| `attack.timing` / `attack.ball` / `attack.players` | 攻撃フェーズ同上 |
+| `serve.byRotation` | ローテ別サーブ初期位置（オーバーラップ順を保った最短スタッキング。サーバー=pos1は除外） |
+| `serve.timing` / `serve.ball` / `serve.players` | サーブフェーズ同上（`ball.tossUpY`=トス頂点、`ball.hitY`=打点高） |
+| `defense.base` | 役割ベース守備配置（`frontOH/frontMB/frontRight/backOH/backMB/backRight`。`backMB`=センターバックは深め z7.8） |
+| `defense.attackPrep` | ブロック後に攻撃準備で下がるアタックライン際の位置（`frontMB`/`frontRight`） |
+| `defense.timing` / `defense.ball` / `defense.players` | ディフェンスフェーズ同上（`ball.setOrigin/setArc`=相手セット、`timing.attackReady`=トランジション到達、`players.blockTakeoff/blockJumpLand`=ブロック踏切/着地、`players.blockJump`=ジャンプ量） |
+| `attack.base` | 役割ベース攻撃配置（役割スロット） |
+| `attack.tossTarget` / `attack.rightAttack` | 左サイド（OH）のトス先 / 右サイド（OP）の攻撃位置 |
+| `attack.timing` / `attack.ball` / `attack.players` | 攻撃フェーズ同上（`ball.tossY`=打点高=3.4 ネット上、`players.mbApproach`=クイック助走時刻） |
 | `setterPos` | セッターポジション座標（全フェーズ共通） |
 | `specialistPos.sFront` / `specialistPos.sBack` | 専門ポジション（セッター前衛/後衛別） |
-| `frontRowPositions` | 前衛ポジション番号の配列 |
+| `frontRowPositions` | 前衛ポジション番号の配列 `[2,3,4]` |
 | `sample.idleBobY` | 待機時の上下揺れ振幅 |
+
+> 注: `defense.digByPosition` / `blockPos1` / `blockPos2` / `offBlockPos` 等、旧実装由来で現在は補助的に使う定数も一部残置。`posBase` は以前 z 負（相手コート側）の不正値に破損していたが v1.1 で自陣座標へ復元済み。
 
 ---
 
@@ -359,10 +386,28 @@ const opFront = isFront('OP')                            // OP前衛判定
 
 ### Reception（フェーズ0）の特殊処理
 
-- レセプション開始位置 `RECEPTION_START`: 前衛はネット寄り（`frontRowZ`）、後衛はベースポジション
-- セッターが後衛の場合: エンドラインから前衛ペアの背後（`backSetterBehindZ`）に位置
-- S1ローテーションのみ専用オーバーライド（`s1Overrides`）を適用
+- レセプション開始位置 `RECEPTION_START`: `reception.byRotation[rotKey]` から取得（全ローテでオーバーラップ則を満たすよう配置）
 - スパイカー決定: 左前（Pos4）の選手を優先、なければ frontOH → OP → frontMB の順
+- S1ローテーションのみ移動開始タイミングが他と異なる（`rotKey === 'S1'` 分岐）
+- スパイカーは打点アライメント（頂点を spikeHit に合わせ、手の高さ＝`tossY`）
+
+### Serve（フェーズ1）の初期位置スタッキング
+
+- `serve.byRotation[rotKey]` でローテ別の初期位置を定義（サーバー＝pos1 は `serverPos` で別管理のため除外）
+- 方針: オーバーラップ順（前衛 pos4<pos3<pos2 / 後衛 pos5<pos6<pos1）を保ったまま、交代後の専門ポジションへ移動最短化（合致列は定位置近く、入れ替わる列は中央寄りにスタック）
+- 後衛MB（非サーバー）はサーブ後も深い守備位置に停止。サーバーが後衛MB（S3/S6）の場合は打った後に深い位置(z7.8)へ
+
+### Defense（フェーズ2）の役割ベース配置・ブロック
+
+- 役割で左右を決定（`frontOHId/backOHId/frontMBId/backMBId/frontRightId/backRightId`、`frontRightId = isFront('S') ? 'S' : 'OP'`）→ `defense.base` の役割スロットへ配置
+- ブロック: 前衛S/OP（右）＋前衛MB（中央→右に締める）の2枚。ボールのネット通過時刻に頂点を合わせ、手の高さをボールに一致（`blockTakeoff`→`blockJumpLand`、`blockJump`）
+- 前衛OHはオフブロッカー（左でコートカバー）、後衛OH（左後ろ）がクロスをディグ、後衛MB（センターバック）は深め
+- ディグ後トランジション: 後衛セッターのネットイン と ブロッカー2枚のアタックライン後退（`defense.attackPrep`）を `digHold`→`attackReady` で同時実行
+
+### Attack（フェーズ3）の役割ベース配置
+
+- スパイカー＝前衛OH（左から、打点アライメント）。前衛MB＝中央クイック（`mbApproach` 助走→ほぼ垂直ジャンプ）。前衛OP（いれば）＝右から助走。セッターは `setterPos` でトス
+- 開始位置は `attack.base` の役割スロット、トス先は `attack.tossTarget`（左）
 
 ### 専門ポジション（SPECIALIST_POS）
 
@@ -372,8 +417,8 @@ const opFront = isFront('OP')                            // OP前衛判定
 frontOH: 左前（アンテナ付近）
 frontMB: ネット前中央
 backOH:  左後（レシーブ優先ゾーン）
-backMB:  右後
-S / OP:  前衛後衛それぞれの定位置
+backMB:  中後（センターバック）
+S / OP:  前衛後衛それぞれの定位置（前衛=右前、後衛=右後）
 ```
 
 ---

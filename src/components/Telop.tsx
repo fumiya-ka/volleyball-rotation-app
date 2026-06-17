@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useSceneStore } from '../store/sceneStore'
 import { useDescriptionsStore } from '../store/descriptionsStore'
@@ -34,6 +34,24 @@ export default function Telop() {
     ? `player-${selectedPlayer}-${phase}-${rotation}`
     : `overall-${phase}-${rotation}-${attackTempo}`
 
+  // 展開状態（解説が切り替わるたびに畳む）
+  const [expanded, setExpanded] = useState(false)
+  useEffect(() => setExpanded(false), [animKey])
+
+  // 全体解説の段落
+  const overallParas = useMemo(() => overallDesc.desc.split('\n\n'), [overallDesc.desc])
+  const overallNeedsToggle = overallParas.length > 1 || (overallParas[0]?.length ?? 0) > 90
+  const playerNeedsToggle = (playerDesc?.action.length ?? 0) > 90
+
+  const ToggleButton = (
+    <button
+      onClick={() => setExpanded((v) => !v)}
+      className="mt-2 font-mono text-[12px] sm:text-[13px] tracking-wider text-[#ff5436] hover:text-[#ff7a64] transition-colors"
+    >
+      {expanded ? '閉じる ▴' : '詳しく ▾'}
+    </button>
+  )
+
   return (
     <div className="fixed bottom-28 sm:bottom-32 left-1/2 -translate-x-1/2 z-10 w-[min(720px,94vw)]">
       <AnimatePresence mode="wait">
@@ -43,7 +61,9 @@ export default function Telop() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.25 }}
-          className="px-4 py-3 sm:px-7 sm:py-5 bg-[#0a0e1a]/88 backdrop-blur-md"
+          className={`px-4 py-3 sm:px-7 sm:py-5 backdrop-blur-md transition-colors duration-300 ${
+            expanded ? 'bg-[#0a0e1a]/45' : 'bg-[#0a0e1a]/88'
+          }`}
           style={{ borderLeft: `4px solid ${selectedPlayer ? playerColor : '#ff5436'}` }}
         >
           {selectedPlayer && playerDesc ? (
@@ -85,15 +105,22 @@ export default function Telop() {
                 {selectedPlayer} — {PLAYERS.find((p) => p.id === selectedPlayer)?.label ?? selectedPlayer} の役割
               </h2>
 
-              {/* 解説本文 */}
-              <p className="text-[14px] sm:text-[16px] leading-relaxed text-[#dde1e7]">
+              {/* 解説本文（畳んでいるときは3行で省略） */}
+              <p
+                className={`text-[14px] sm:text-[16px] leading-relaxed text-[#dde1e7] ${
+                  !expanded && playerNeedsToggle ? 'line-clamp-3' : ''
+                }`}
+              >
                 {playerDesc.action}
               </p>
+              {playerNeedsToggle && ToggleButton}
 
               {/* ヒント */}
-              <p className="mt-2 text-[12px] sm:text-[13px] text-[#9ca3af] font-mono tracking-wider">
-                他の選手をタップして切替 / コート背景タップで全体解説に戻る
-              </p>
+              {expanded && (
+                <p className="mt-2 text-[12px] sm:text-[13px] text-[#9ca3af] font-mono tracking-wider">
+                  他の選手をタップして切替 / コート背景タップで全体解説に戻る
+                </p>
+              )}
             </>
           ) : (
             /* ── 全体解説 ── */
@@ -104,20 +131,24 @@ export default function Telop() {
               <h2 className="text-base sm:text-xl font-extrabold text-white mb-1.5 sm:mb-2 leading-snug">
                 {overallDesc.title}
               </h2>
-              {overallDesc.desc.split('\n\n').map((para, i) => (
+              {(expanded ? overallParas : overallParas.slice(0, 1)).map((para, i) => (
                 <p
                   key={i}
                   className={`text-[14px] sm:text-[16px] leading-relaxed text-[#dde1e7] ${
                     i > 0 ? 'mt-1.5 pt-1.5 sm:mt-2 sm:pt-2 border-t border-[#2d3340]' : ''
-                  }`}
+                  } ${!expanded && overallNeedsToggle ? 'line-clamp-3' : ''}`}
                 >
                   {para}
                 </p>
               ))}
+              {overallNeedsToggle && ToggleButton}
+
               {/* ヒント */}
-              <p className="mt-2 text-[12px] sm:text-[13px] text-[#9ca3af] font-mono tracking-wider">
-                選手をタップすると個人別解説を表示
-              </p>
+              {expanded && (
+                <p className="mt-2 text-[12px] sm:text-[13px] text-[#9ca3af] font-mono tracking-wider">
+                  選手をタップすると個人別解説を表示
+                </p>
+              )}
             </>
           )}
         </motion.div>

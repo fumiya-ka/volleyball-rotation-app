@@ -204,7 +204,7 @@
     "timing": {
       "serveHit": 0.6,
       "ballToReceiver": 1.7,
-      "ballToSetter": 2.4,
+      "ballToSetter": 2.6,
       "ballSetterHold": 2.7,
       "ballToToss": 4.05,
       "spikeHit": 4.1,
@@ -401,11 +401,17 @@
       "spikeHit": 1.4,
       "ballDig": 2,
       "digHold": 2.8,
-      "ballToSetter": 3.6,
+      "ballToSetter": 4.1,
       "attackReady": 3.7,
       "end": 4.2
     },
     "ball": {
+      "setOrigin": {
+        "x": -0.5,
+        "y": 1.3,
+        "z": -2.5
+      },
+      "setArc": 1.2,
       "spikeOrigin": {
         "x": 2,
         "y": 2.8,
@@ -478,8 +484,8 @@
     },
     "timing": {
       "ballRise": 0.5,
-      "ballHold": 0.8,
-      "ballToToss": 1.8,
+      "ballHold": 0.6,
+      "ballToToss": 2.0,
       "spikeHit": 2.1,
       "ballLands": 2.9,
       "endTime": 4.2

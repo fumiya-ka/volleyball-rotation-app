@@ -299,6 +299,7 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     const T = D.timing
     const B = D.ball
     const P = D.players
+    const setOrigin = B.setOrigin as { x: number; y: number; z: number }
     const spikeOrigin = B.spikeOrigin as { x: number; y: number; z: number }
     const spikeApproach = B.spikeApproach as { x: number; y: number; z: number }
 
@@ -326,12 +327,13 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     const digReceiverId = backOHId // クロスの打球は左後ろの OH が処理
     const { end: endTime } = T
 
+    // ボールは止めず連続的に動かす（保持＝反則のため）。
+    // 相手セット→スパイク→ディグ→セッター、を一筆書きで。
     const ballSeq: BallKeyframe[] = [
-      { t: 0.0, ...spikeOrigin, arc: 0 },
-      { t: T.spikeWindup, ...spikeOrigin, arc: 0 },
+      { t: 0.0, ...setOrigin, arc: 0 },
+      { t: T.spikeWindup, ...spikeOrigin, arc: B.setArc as number },
       { t: T.spikeHit, ...spikeApproach, arc: 0 },
       { t: T.ballDig, x: ballDigPoint.x, y: B.digY as number, z: ballDigPoint.z, arc: B.digArc as number },
-      { t: T.digHold, x: ballDigPoint.x, y: B.digY as number, z: ballDigPoint.z, arc: 0 },
       { t: T.ballToSetter, x: SETTER_POS.x, y: B.setterY as number, z: SETTER_POS.z, arc: B.setterArc as number },
       { t: endTime, x: SETTER_POS.x, y: B.setterY as number, z: SETTER_POS.z, arc: 0 },
     ]

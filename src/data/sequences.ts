@@ -311,7 +311,6 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     const B = D.ball
     const P = D.players
     const setOrigin = B.setOrigin as { x: number; y: number; z: number }
-    const spikeOrigin = B.spikeOrigin as { x: number; y: number; z: number }
     const spikeApproach = B.spikeApproach as { x: number; y: number; z: number }
 
     // 被スパイク時はローテ番号ではなく「役割」で位置取りする。
@@ -339,11 +338,11 @@ export function buildSequence(rotKey: RotKey, phase: number, C: SequenceConstant
     const { end: endTime } = T
 
     // ボールは止めず連続的に動かす（保持＝反則のため）。
-    // 相手セット→スパイク→ディグ→セッター、を一筆書きで。
+    // 余分な折れを排し、各区間を単純なサインカーブ（1区間＝1つの弧）にする:
+    //  相手セット↑(1本) → スパイク↓(ブロックが当たる単純なサイン弧) → ディグ↑ → セッター
     const ballSeq: BallKeyframe[] = [
       { t: 0.0, ...setOrigin, arc: 0 },
-      { t: T.spikeWindup, ...spikeOrigin, arc: B.setArc as number },
-      { t: T.spikeHit, ...spikeApproach, arc: 0 },
+      { t: T.spikeHit, ...spikeApproach, arc: B.setArc as number },
       { t: T.ballDig, x: ballDigPoint.x, y: B.digY as number, z: ballDigPoint.z, arc: B.digArc as number },
       { t: T.ballToSetter, x: SETTER_POS.x, y: B.setterY as number, z: SETTER_POS.z, arc: B.setterArc as number },
       { t: endTime, x: SETTER_POS.x, y: B.setterY as number, z: SETTER_POS.z, arc: 0 },
